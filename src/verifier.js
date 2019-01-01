@@ -1,21 +1,10 @@
-const Word = require("./parse-tree").Word;
+const { Word } = require("./parse-tree");
+const { getEnumInf, hashOfObj } = require("./utils");
 
 const failFn = () => false;
 const passFn = () => true;
 
-function getEnumInf(enumAST) {
-  const keys = Object.keys(enumAST);
-  const sample = enumAST[keys[0]];
-  return {
-    type: sample.typeProcessor[1],
-    typeArgs: sample.typeProcessor[2],
-    typeProcessor: sample.typeProcessor,
-    fn: sample.valueResolver[1],
-    ns: sample.valueResolver[3].ns
-  };
-}
-
-// TODO This function hosts structrual assumption and implements a workaround to detect enum,
+// WARN This function hosts structrual assumption and implements a workaround to detect enum,
 // thereby reducing the dynamic behaviour of the verifier. For the the time being it works.
 // For future for any scalability issue check if the resolve process of
 // enum could be done from parser (towards the top of the lib) / or from any other place instead
@@ -258,6 +247,7 @@ function itrFactory(ast, mount, matchObj) {
 }
 
 function postTransformationMutator(ast, context) {
+  const enumItrbls = (ast[Word.EnumIterables] = ast[Word.EnumIterables] || {});
   /* verifier + mutator */
   return () => {
     const enums = ast[Word.Enum];
@@ -266,6 +256,8 @@ function postTransformationMutator(ast, context) {
     let valResolver;
     let eachEnum;
     let enumInf;
+    let iterables;
+    let enumName;
 
     [Word.TypeDef, Word.OList].forEach(defs => {
       for (item in ast[defs]) {
@@ -276,8 +268,16 @@ function postTransformationMutator(ast, context) {
         eachDefs = ast[defs][item];
         for (key in eachDefs) {
           if (eachDefs[key].typeProcessor[0] === Word.Ref) {
-            if (eachDefs[key].typeProcessor[1] in ast[Word.Enum]) {
+            if ((enumName = eachDefs[key].typeProcessor[1]) in ast[Word.Enum]) {
               eachDefs[key].typeProcessor.unshift(Word.Enum);
+              // If identity (pass) fn is used in schema for enum reference, replace it with enumLookup fn
+              let val = eachDefs[key].valueResolver;
+              if (val[0] === Word.Fn && val[1] === Word.Identity) {
+                // Pass the enum name as part of the args of context fn. Probably not the best way of injecting the
+                // name. By here we go. This is done because during verification the enum member's typeProcessor changes
+                // to more fundamental type
+                val[1] = `${Word.EnumLookup},${enumName}`;
+              }
             }
           }
         }
@@ -287,6 +287,7 @@ function postTransformationMutator(ast, context) {
     for (item in enums) {
       eachEnum = enums[item];
       enumInf = getEnumInf(eachEnum);
+      iterables = enumItrbls[item] = enumItrbls[item] || {};
 
       if (enumInf.type === Word.Ref) {
         // For reference type, verification from transformation is required as the parser returns the value
@@ -323,21 +324,19 @@ function postTransformationMutator(ast, context) {
               Mismatch details:
               ${JSON.stringify(status[1], null, 2)}
             `);
+          } else {
+            // Save the hash of the object
+            iterables[hashOfObj(valResolver[2])] = 1;
           }
         }
       } else {
-        // For other primitive types the parser checks the type before constructing the parse tree, hence
-        // explicit verification is not required
-        // let key;
-        // let collectedPartialObj;
-        // for (key in eachEnum) {
-        //   valResolver = eachEnum[key].valueResolver;
-        //   collectedPartialObj = fn({
-        //     value: valResolver[2][0],
-        //     key
-        //   });
-        // }
-        // enums[item] = collectedPartialObj;
+        // For other primitive types directly extracts the member as iterables. Verification is already completed from
+        // parser, hence explicit verification is not required
+        let key;
+        for (key in eachEnum) {
+          valResolver = eachEnum[key].valueResolver;
+          iterables[valResolver[2][0]] = 1;
+        }
       }
     }
   };

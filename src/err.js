@@ -13,5 +13,8 @@ module.exports = {
   ValueMismatch: {
     msg: (expected, received) =>
       `Values not equal; expected: ${expected}, received: ${received}`
+  },
+  ValueNotPresent: {
+    msg: (val, enumName) => `Value ${val} is not present in enum ${enumName}`
   }
 };

@@ -6,6 +6,7 @@
  */
 
 const Err = require("./err");
+const { Word } = require("./parse-tree");
 
 const KeyPresence = {
   Mandatory: 1,
@@ -171,6 +172,24 @@ const abEq = ({ value, key }, args, __, itr) => {
   return () => result;
 };
 
+const enumLookup = ({ value, key }, args, { ast }, itr) => {
+  let result = false;
+  const enumName = args[0];
+
+  if (
+    enumName in ast[Word.EnumIterables] &&
+    ast[Word.EnumIterables][enumName][value] === 1
+  ) {
+    result = true;
+  }
+
+  if (!result) {
+    itr.report(key, Err.ValueNotPresent.msg(value, enumName));
+  }
+
+  return () => result;
+};
+
 function createContext() {
   const context = {};
 
@@ -190,7 +209,8 @@ function createContext() {
       isStr,
       isNum,
       isBool,
-      abEq
+      abEq,
+      enumLookup
     },
     [context.NS.User]: {},
     _local: {}

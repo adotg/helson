@@ -1,5 +1,4 @@
 const Word = require("./parse-tree").Word;
-const report = require("./report");
 
 const walkList = (nodes, parent, args) => {
   let i = 0;

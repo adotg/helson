@@ -1,41 +1,57 @@
 const parser = require("./helson").parser;
 const transformer = require("./transformer");
-const verifier = require("./verifier");
-const context = require("./context");
+const { verifier } = require("./verifier");
+const { isSimpleObj } = require("./utils");
 
-function exec(input) {
-  return parser.parse(input);
+function makeEligibleContext(proposedCtx) {
+  const eligibleContext = {};
+  let key;
+  let atLeaseOne = false;
+  if (!isSimpleObj(proposedCtx)) {
+    return null;
+  }
+
+  for (key in proposedCtx) {
+    if (
+      !proposedCtx.hasOwnProperty(key) ||
+      typeof proposedCtx[key] !== "function"
+    ) {
+      continue;
+    }
+
+    atLeaseOne = true;
+    eligibleContext[key] = proposedCtx[key];
+  }
+
+  if (!atLeaseOne) {
+    return null;
+  }
+
+  return eligibleContext;
 }
 
-const fs = require("fs");
-const str = fs.readFileSync("../examples/ex1.schema").toString();
-const pt = exec(str); // parse tree
+function helson(schemaInStr) {
+  const resp = {};
 
-fs.writeFileSync("./output.json", JSON.stringify(pt, null, 2));
+  const context = require("./context").createContext();
+  const pt = parser.parse(schemaInStr);
+  const ast = transformer(pt);
 
-const ast = transformer(pt);
-// const replacer = function(key, val) {
-//   if (typeof val === "function") {
-//     return val.toString();
-//   }
+  resp.context = ctxDef => {
+    context.set(makeEligibleContext(ctxDef));
+    return resp;
+  };
 
-//   return val;
-// };
-// console.log(JSON.stringify(resp, replacer, 2));
-// console.log("============================");
-// console.log(JSON.stringify(depGraph, null, 2));
+  resp.match = (matchObj, matchWithIdentifier, localContext) => {
+    localContext = makeEligibleContext(localContext);
+    context.setLocal(localContext);
+    return verifier(ast, matchObj, { mount: matchWithIdentifier }, context);
+  };
 
-const config = { mount: "Order1" };
-const matchObj = {
-  customer: {
-    name: "Akash",
-    age: 12
-  },
-  quantity: 10
-};
+  return resp;
+}
 
-const status = verifier(ast, matchObj, config, context);
-console.log(JSON.stringify(status, null, 2));
+module.exports = helson;
 
 /*
  * Expected usage:

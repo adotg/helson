@@ -1,6 +1,9 @@
 const walker = require("./walker");
 const Word = require("./parse-tree").Word;
-const context = require("./context");
+// WARN this context is just for the system context. Since it creates an separate instance
+// of context hence any changes made to this would be reflected in any other context.
+// This works because this file only uses enums and system namespace ofthe context
+const context = require("./context").createContext();
 const { postTransformationMutator } = require("./verifier");
 
 const Indices = {

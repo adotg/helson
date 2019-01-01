@@ -34,7 +34,9 @@ const Word = {
   Fail: "fail",
   TypeDef: "typdef",
   OList: "olist",
-  Enum: "enum"
+  Enum: "enum",
+  EnumLookup: "enumLookup",
+  EnumIterables: "enum-itrbls"
 };
 
 function sanitize(properties, children) {
