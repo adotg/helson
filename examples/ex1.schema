@@ -1,0 +1,22 @@
+typdef Person {
+	str "name": pass,
+	optnl num "age": [, 100]
+}
+
+typdef Order1 {
+	`Person "customer": pass,
+	num "quantity": pass,
+}
+
+typdef Order {
+	`Person "customer": pass,
+	num "quantity": pass,
+
+	obj "items": {
+		bool "allAvailable": true
+
+		optnl obj "items":{
+			str "key1": pass
+		}
+	}
+}

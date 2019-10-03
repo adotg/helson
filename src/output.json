@@ -1,0 +1,318 @@
+{
+  "nodeType": "Program",
+  "properties": {},
+  "children": [
+    {
+      "nodeType": "StructureDefinition",
+      "properties": {},
+      "children": [
+        {
+          "nodeType": "StructureIdentifier",
+          "properties": {
+            "type": "typdef",
+            "id": "Person"
+          },
+          "children": []
+        },
+        {
+          "nodeType": "StructureBody",
+          "properties": {},
+          "children": [
+            {
+              "nodeType": "PairDefinition",
+              "properties": {
+                "isOptional": false
+              },
+              "children": [
+                {
+                  "nodeType": "PairComponentKey",
+                  "properties": {
+                    "type": "Str",
+                    "id": "name"
+                  },
+                  "children": []
+                },
+                {
+                  "nodeType": "PairComponentValue",
+                  "properties": {
+                    "type": "Fn",
+                    "value": "pass"
+                  },
+                  "children": []
+                }
+              ]
+            },
+            {
+              "nodeType": "PairDefinition",
+              "properties": {
+                "isOptional": true
+              },
+              "children": [
+                {
+                  "nodeType": "PairComponentKey",
+                  "properties": {
+                    "type": "Num",
+                    "id": "age"
+                  },
+                  "children": []
+                },
+                {
+                  "nodeType": "PairComponentValue",
+                  "properties": {
+                    "type": "Fn",
+                    "value": "lcrcRange,null,100"
+                  },
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "nodeType": "StructureDefinition",
+      "properties": {},
+      "children": [
+        {
+          "nodeType": "StructureIdentifier",
+          "properties": {
+            "type": "typdef",
+            "id": "Order1"
+          },
+          "children": []
+        },
+        {
+          "nodeType": "StructureBody",
+          "properties": {},
+          "children": [
+            {
+              "nodeType": "PairDefinition",
+              "properties": {
+                "isOptional": false
+              },
+              "children": [
+                {
+                  "nodeType": "PairComponentKey",
+                  "properties": {
+                    "type": "Ref",
+                    "typeArgs": "Person",
+                    "id": "customer"
+                  },
+                  "children": []
+                },
+                {
+                  "nodeType": "PairComponentValue",
+                  "properties": {
+                    "type": "Fn",
+                    "value": "pass"
+                  },
+                  "children": []
+                }
+              ]
+            },
+            {
+              "nodeType": "PairDefinition",
+              "properties": {
+                "isOptional": false
+              },
+              "children": [
+                {
+                  "nodeType": "PairComponentKey",
+                  "properties": {
+                    "type": "Num",
+                    "id": "quantity"
+                  },
+                  "children": []
+                },
+                {
+                  "nodeType": "PairComponentValue",
+                  "properties": {
+                    "type": "Fn",
+                    "value": "pass"
+                  },
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "nodeType": "StructureDefinition",
+      "properties": {},
+      "children": [
+        {
+          "nodeType": "StructureIdentifier",
+          "properties": {
+            "type": "typdef",
+            "id": "Order"
+          },
+          "children": []
+        },
+        {
+          "nodeType": "StructureBody",
+          "properties": {},
+          "children": [
+            {
+              "nodeType": "PairDefinition",
+              "properties": {
+                "isOptional": false
+              },
+              "children": [
+                {
+                  "nodeType": "PairComponentKey",
+                  "properties": {
+                    "type": "Ref",
+                    "typeArgs": "Person",
+                    "id": "customer"
+                  },
+                  "children": []
+                },
+                {
+                  "nodeType": "PairComponentValue",
+                  "properties": {
+                    "type": "Fn",
+                    "value": "pass"
+                  },
+                  "children": []
+                }
+              ]
+            },
+            {
+              "nodeType": "PairDefinition",
+              "properties": {
+                "isOptional": false
+              },
+              "children": [
+                {
+                  "nodeType": "PairComponentKey",
+                  "properties": {
+                    "type": "Num",
+                    "id": "quantity"
+                  },
+                  "children": []
+                },
+                {
+                  "nodeType": "PairComponentValue",
+                  "properties": {
+                    "type": "Fn",
+                    "value": "pass"
+                  },
+                  "children": []
+                }
+              ]
+            },
+            {
+              "nodeType": "PairDefinition",
+              "properties": {
+                "isOptional": false
+              },
+              "children": [
+                {
+                  "nodeType": "PairComponentKey",
+                  "properties": {
+                    "type": "Obj",
+                    "id": "items"
+                  },
+                  "children": []
+                },
+                {
+                  "nodeType": "PairComponentValue",
+                  "properties": {
+                    "type": "Rec",
+                    "value": {
+                      "nodeType": "StructureBody",
+                      "properties": {},
+                      "children": [
+                        {
+                          "nodeType": "PairDefinition",
+                          "properties": {
+                            "isOptional": false
+                          },
+                          "children": [
+                            {
+                              "nodeType": "PairComponentKey",
+                              "properties": {
+                                "type": "Bool",
+                                "id": "allAvailable"
+                              },
+                              "children": []
+                            },
+                            {
+                              "nodeType": "PairComponentValue",
+                              "properties": {
+                                "type": "Abs",
+                                "value": "true"
+                              },
+                              "children": []
+                            }
+                          ]
+                        },
+                        {
+                          "nodeType": "PairDefinition",
+                          "properties": {
+                            "isOptional": true
+                          },
+                          "children": [
+                            {
+                              "nodeType": "PairComponentKey",
+                              "properties": {
+                                "type": "Obj",
+                                "id": "items"
+                              },
+                              "children": []
+                            },
+                            {
+                              "nodeType": "PairComponentValue",
+                              "properties": {
+                                "type": "Rec",
+                                "value": {
+                                  "nodeType": "StructureBody",
+                                  "properties": {},
+                                  "children": [
+                                    {
+                                      "nodeType": "PairDefinition",
+                                      "properties": {
+                                        "isOptional": false
+                                      },
+                                      "children": [
+                                        {
+                                          "nodeType": "PairComponentKey",
+                                          "properties": {
+                                            "type": "Str",
+                                            "id": "key1"
+                                          },
+                                          "children": []
+                                        },
+                                        {
+                                          "nodeType": "PairComponentValue",
+                                          "properties": {
+                                            "type": "Fn",
+                                            "value": "pass"
+                                          },
+                                          "children": []
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              },
+                              "children": []
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

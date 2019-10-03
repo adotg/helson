@@ -1,0 +1,29 @@
+{
+  "name": "helson",
+  "version": "0.0.0",
+  "description": "JavaScript Object Schema Checker",
+  "main": "dist/helson.js",
+  "scripts": {
+    "test": "mocha",
+    "start:debug": "node --inspect-brk=0.0.0.0:9229 src/index"
+  },
+  "keywords": [
+    "JavaScript",
+    "JS",
+    "Object",
+    "schema",
+    "checker",
+    "test",
+    "gatekeeper",
+    "compiler"
+  ],
+  "author": "Akash Goswami",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "jison": "^0.4.18"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "mocha": "^6.2.0"
+  }
+}
