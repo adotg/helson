@@ -34,7 +34,6 @@ function getRecursiveObjectMountStub(id, recObject) {
 
 function transformer(pt /* parse tree */) {
   const ast = {};
-  const depGraph = {}; // Dependency graph of recursive objects
 
   // Walking through the node happens in Depth First Order. The closure is created with this
   // assumption only. No explicit check is done which goes outside the assumption set.
@@ -46,7 +45,6 @@ function transformer(pt /* parse tree */) {
 
   let structureBody = null;
   let pairConfig = null;
-  let depGraphForItem = null;
   let isOptional = null;
 
   walker(pt, {
@@ -54,27 +52,18 @@ function transformer(pt /* parse tree */) {
       exit: () => {
         structure.type = null;
         structure.id = null;
-        depGraphForItem = null;
       }
     },
 
     [Word.StructureIdentifier]: {
       enter: node => {
-        let id;
         structure.type = node.properties.type;
-        id = structure.id = node.properties.id;
-
-        depGraphForItem = depGraph[id] = {
-          card: 0, // cardinality
-          noCard: 0, // non optional cardinality
-          oDeps: [], // optional dependencies
-          noDeps: [] // Non optional dependencies
-        };
+        structure.id = node.properties.id;
       }
     },
 
     [Word.StructureBody]: {
-      enter: node => {
+      enter: () => {
         ast[structure.id] = structureBody = {};
       },
 
@@ -89,8 +78,6 @@ function transformer(pt /* parse tree */) {
         pairConfig = {
           preProcessor: ["optionality", isOptional]
         };
-        depGraphForItem.card++;
-        !isOptional && depGraphForItem.noCard++;
       },
       exit: () => {
         structureBody[pairConfig.keyId] = pairConfig;
@@ -106,13 +93,6 @@ function transformer(pt /* parse tree */) {
           node.properties.typeArgs
         ];
         pairConfig.keyId = node.properties.id;
-        const typeArgs = node.properties.typeArgs || null;
-        // If it's a reference
-        if (node.properties.type === Word.Ref) {
-          depGraphForItem[isOptional ? "oDeps" : "noDeps"].push(
-            node.properties.typeArgs
-          );
-        }
       }
     },
 
@@ -128,12 +108,7 @@ function transformer(pt /* parse tree */) {
           root.children.push(
             getRecursiveObjectMountStub(id, node.properties.value)
           );
-
-          depGraphForItem[isOptional ? "oDeps" : "noDeps"].push(id);
         } else {
-          let ns;
-          let fn;
-          let expectation;
           switch (node.properties.type) {
             case Word.Fn:
               ns = context.NS.System;
@@ -159,7 +134,7 @@ function transformer(pt /* parse tree */) {
     }
   });
 
-  return { ast, depGraph };
+  return ast;
 }
 
 module.exports = transformer;

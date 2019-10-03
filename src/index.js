@@ -13,7 +13,7 @@ const pt = exec(str); // parse tree
 
 fs.writeFileSync("./output.json", JSON.stringify(pt, null, 2));
 
-const { ast, depGraph } = transformer(pt);
+const ast = transformer(pt);
 // const replacer = function(key, val) {
 //   if (typeof val === "function") {
 //     return val.toString();
