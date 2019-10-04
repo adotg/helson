@@ -1,13 +1,12 @@
-const chai = require("chai");
-const { expect } = chai;
+const expect = require("chai").expect;
 
-describe("Program With simple Objects", () => {
+describe("ParseTree", () => {
   const pt = require("../src/parse-tree");
-  const { Word, Enum } = pt;
+  const { Word } = pt;
 
   const structId = pt.makeEntry(Word.StructureIdentifier, {
     name: "Person ",
-    type: Enum.StructureType.TypeDef
+    type: Word.TypeDef
   });
 
   const keyOfPairDef1 = pt.makeEntry(Word.PairComponentKey, {
@@ -44,7 +43,7 @@ describe("Program With simple Objects", () => {
 
   const program = pt.makeEntry(Word.Program, {}, [structId, structBody]);
 
-  it("should match", () => {
+  it("should get constructed properly if the dependencies are passed in right order", () => {
     expect(program).to.deep.equal({
       nodeType: Word.Program,
       properties: {},
@@ -53,7 +52,7 @@ describe("Program With simple Objects", () => {
           nodeType: Word.StructureIdentifier,
           properties: {
             name: "Person ",
-            type: Enum.StructureType.TypeDef
+            type: Word.TypeDef
           },
           children: []
         },
