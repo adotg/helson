@@ -13,3 +13,7 @@
 [ ] Correct error message during tokenizing + parsing
 
 [~] Diff when matching an object to regulator
+
+## Note
+
+- Decimals will be in the form of 0.1234. The prefix zero is mandatory.
