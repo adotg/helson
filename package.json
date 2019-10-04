@@ -5,7 +5,8 @@
   "main": "dist/helson.js",
   "scripts": {
     "test": "mocha",
-    "start:debug": "node --inspect-brk=0.0.0.0:9229 src/index"
+    "start:debug": "node --inspect-brk=0.0.0.0:9229 src/index",
+    "generate": "jison helson.y helson.lex"
   },
   "keywords": [
     "JavaScript",
