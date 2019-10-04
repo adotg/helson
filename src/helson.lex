@@ -1,7 +1,8 @@
 userfn          \$\{[a-zA-Z_]*[a-zA-Z0-9_]+\}
 struct_id       [A-Z][a-zA-Z0-9_]*
 text            \"[^"]*\"
-numeric         [0-9]+(.[0-9]+)?
+regex           ^\/.*\/$
+numeric         [0-9]+(\.[0-9]+)?
 
 %%
 
@@ -15,6 +16,7 @@ num             return 'NUM'
 bool            return 'BOOL'
 obj             return 'OBJ'
 pass            return 'IDENTITY'
+fail            return 'FAIL'
 anyOf           return 'ANYOF'
 true            return 'TRUE'
 false           return 'FALSE'
@@ -26,14 +28,16 @@ allOf           return 'ALLOF'
 "("             return 'OPEN_BRAC'
 ")"             return 'CLOSE_BRAC'
 "{"             return 'OPEN_CURB'
-"`"             return 'REFERENCE'
 "}"             return 'CLOSE_CURB'
+"`"             return 'REFERENCE'
 "|"             return 'OR'
 ":"             return 'COLON'
 ","             return 'COMMA'
+"!"             return 'NOT'
 {userfn}        return 'CTX_USER_FN'
 {struct_id}     return 'S_ID'
 {numeric}       return 'NUMERIC'
 {text}          return 'TEXT'
+{regex}         return 'REGEX'
 
 <<EOF>>         return 'EOF'

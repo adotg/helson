@@ -7,6 +7,12 @@ const Word = {
   PairComponentKey: "PairComponentKey",
   PairComponentValue: "PairComponentValue",
 
+  Transformer: {
+    Str: {
+      Pattern: "str-pattern"
+    }
+  },
+
   Str: "Str",
   StrChkFn: "isStr",
   Num: "Num",
@@ -23,15 +29,9 @@ const Word = {
   UFn: "UFn",
   Abs: "Abs" /* Absolute values */,
   Rec: "Rec" /* Recursive */,
-  Identity: "identity",
+  Identity: "pass",
+  Fail: "fail",
   TypeDef: "typdef"
-};
-
-const Enum = {
-  StructureType: {
-    TypeDef: "Typedef",
-    Enum: "Enum"
-  }
 };
 
 function sanitize(properties, children) {
@@ -64,7 +64,6 @@ function makeEntry(TokenType, properties, children) {
 const parseTree = {};
 parseTree.makeEntry = makeEntry;
 parseTree.Word = Word;
-parseTree.Enum = Enum;
 
 module.exports = parseTree;
 

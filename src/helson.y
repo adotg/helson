@@ -90,12 +90,15 @@ attr
 
 str_value
     : IDENTITY                                  { $$ = ({ type: Fn,  value: $1 }) }
+    | FAIL                                      { $$ = ({ type: Fn,  value: $1 }) }
     | attr                                      { $$ = ({ type: Abs, value: $1 }) }
+    | REGEX                                     { $$ = ({ type: Abs, value: $1, transformer: Word.Transformer.Str.Pattern  }) }
     | CTX_USER_FN                               { $$ = ({ type: UFn, value: $1 }) }
     ;
 
 num_value
     : IDENTITY                                  { $$ = ({ type: Fn,  value: $1 }) }
+    | FAIL                                      { $$ = ({ type: Fn,  value: $1 }) }
     | intervals                                 { $$ = ({ type: Fn,  value: $1 }) }
     | NUMERIC                                   { $$ = ({ type: Abs, value: $1 }) }
     | CTX_USER_FN                               { $$ = ({ type: UFn, value: $1 }) }
@@ -112,6 +115,7 @@ intervals
 
 bool_value
     : IDENTITY                                  { $$ = ({ type: Fn,  value: $1 }) }
+    | FAIL                                      { $$ = ({ type: Fn,  value: $1 }) }
     | TRUE                                      { $$ = ({ type: Abs,  value: $1 }) }
     | TRUTHY                                    { $$ = ({ type: Fn,  value: $1 }) }
     | FALSE                                     { $$ = ({ type: Abs,  value: $1 }) }
@@ -121,11 +125,13 @@ bool_value
 
 ref_value
     : IDENTITY                                  { $$ = ({ type: Fn,  value: $1 }) }
+    | FAIL                                      { $$ = ({ type: Fn,  value: $1 }) }
     | CTX_USER_FN                               { $$ = ({ type: UFn, value: $1 }) }
     ;
 
 obj_value
     : IDENTITY                                  { $$ = ({ type: Fn,  value: $1 }) }
+    | FAIL                                      { $$ = ({ type: Fn,  value: $1 }) }
     | def_body                                  { $$ = ({ type: Rec, value: $1 }) }
     | CTX_USER_FN                               { $$ = ({ type: UFn, value: $1 }) }
     ;
