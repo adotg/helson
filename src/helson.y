@@ -16,8 +16,9 @@ Bool = Word.Bool
 Ref = Word.Ref
 Obj = Word.Obj
 Arr = Word.Arr
+Any = Word.Any
 Fn = Word.Fn
-Abs = Word.Abs
+AbEq = Word.AbEq
 UFn = Word.UFn
 Rec = Word.Rec
 
@@ -58,6 +59,8 @@ pair_def
                                                            parseTree.makeEntry(PairComponentValue, $3) ] }
     | arr_key COLON arr_value COMMA?            { $$ = [ parseTree.makeEntry(PairComponentKey, { type: Arr, id: $1 }),
                                                            parseTree.makeEntry(PairComponentValue, $3) ] }
+    | any_key COLON any_value COMMA?            { $$ = [ parseTree.makeEntry(PairComponentKey, { type: Any, id: $1 }),
+                                                       parseTree.makeEntry(PairComponentValue, $3) ] }
     ;
 
 str_key
@@ -84,6 +87,10 @@ arr_key
     : (OPEN_SQB CLOSE_SQB)+ (str_key_type | num_key_type | bool_key_type | ref_key_type)
     ;
 
+any_key
+    : ANY attr                                  { $$ = $2 }
+    ;
+
 attr
     : TEXT                                      { $$ = yytext.replace(/^"|"$/g, '') }
     ;
@@ -91,8 +98,8 @@ attr
 str_value
     : IDENTITY                                  { $$ = ({ type: Fn,  value: $1 }) }
     | FAIL                                      { $$ = ({ type: Fn,  value: $1 }) }
-    | attr                                      { $$ = ({ type: Abs, value: $1 }) }
-    | REGEX                                     { $$ = ({ type: Abs, value: $1, transformer: Word.Transformer.Str.Pattern  }) }
+    | attr                                      { $$ = ({ type: Fn,  value: AbEq, args: [$1] }) }
+    | REGEX                                     { $$ = ({ type: Fn,  value: AbEq, args: [$1, Word.Transformer.Str.Pattern] }) }
     | CTX_USER_FN                               { $$ = ({ type: UFn, value: $1 }) }
     ;
 
@@ -100,7 +107,7 @@ num_value
     : IDENTITY                                  { $$ = ({ type: Fn,  value: $1 }) }
     | FAIL                                      { $$ = ({ type: Fn,  value: $1 }) }
     | intervals                                 { $$ = ({ type: Fn,  value: $1 }) }
-    | NUMERIC                                   { $$ = ({ type: Abs, value: $1 }) }
+    | NUMERIC                                   { $$ = ({ type: Fn,  value: AbEq, args: [$1] }) }
     | CTX_USER_FN                               { $$ = ({ type: UFn, value: $1 }) }
     ;
 
@@ -114,13 +121,13 @@ intervals
     ;
 
 bool_value
-    : IDENTITY                                  { $$ = ({ type: Fn,  value: $1 }) }
-    | FAIL                                      { $$ = ({ type: Fn,  value: $1 }) }
-    | TRUE                                      { $$ = ({ type: Abs,  value: $1 }) }
-    | TRUTHY                                    { $$ = ({ type: Fn,  value: $1 }) }
-    | FALSE                                     { $$ = ({ type: Abs,  value: $1 }) }
-    | FALSY                                     { $$ = ({ type: Fn,  value: $1 }) }
-    | CTX_USER_FN                               { $$ = ({ type: UFn, value: $1 }) }
+    : IDENTITY                                  { $$ = ({ type: Fn,   value: $1 }) }
+    | FAIL                                      { $$ = ({ type: Fn,   value: $1 }) }
+    | TRUE                                      { $$ = ({ type: Fn,   value: AbEq, args: [$1] }) }
+    | TRUTHY                                    { $$ = ({ type: Fn,   value: $1 }) }
+    | FALSE                                     { $$ = ({ type: Fn,   value: AbEq, args: [$1] }) }
+    | FALSY                                     { $$ = ({ type: Fn,   value: $1 }) }
+    | CTX_USER_FN                               { $$ = ({ type: UFn,  value: $1 }) }
     ;
 
 ref_value
@@ -134,6 +141,11 @@ obj_value
     | FAIL                                      { $$ = ({ type: Fn,  value: $1 }) }
     | def_body                                  { $$ = ({ type: Rec, value: $1 }) }
     | CTX_USER_FN                               { $$ = ({ type: UFn, value: $1 }) }
+    ;
+
+any_value
+    : IDENTITY                                  { $$ = ({ type: Fn,  value: $1 }) }
+    | FAIL                                      { $$ = ({ type: Fn,  value: $1 }) }
     ;
 
 %%
