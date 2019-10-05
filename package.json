@@ -4,9 +4,9 @@
   "description": "JavaScript Object Schema Checker",
   "main": "dist/helson.js",
   "scripts": {
-    "test": "mocha",
+    "test": "npm run generate && mv helson.js src/helson.js && mocha",
     "start:debug": "node --inspect-brk=0.0.0.0:9229 src/index",
-    "generate": "jison helson.y helson.lex"
+    "generate": "jison src/helson.y src/helson.lex"
   },
   "keywords": [
     "JavaScript",
