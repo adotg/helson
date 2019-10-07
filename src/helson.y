@@ -22,6 +22,15 @@ AbEq = Word.AbEq
 UFn = Word.UFn
 Rec = Word.Rec
 
+dim = null
+collector = null
+buffer = null
+rcg = null /* rcg = recursiveCollectorGroup */
+stack = []
+valueDims = [];
+ptrToCurrentRCG = null
+pathRCG = null
+rcgCount = 0
 %}
 
 %ebnf
@@ -57,7 +66,7 @@ pair_def
                                                            parseTree.makeEntry(PairComponentValue, $3) ] }
     | obj_key COLON obj_value COMMA?            { $$ = [ parseTree.makeEntry(PairComponentKey, { type: Obj, id: $1 }),
                                                            parseTree.makeEntry(PairComponentValue, $3) ] }
-    | arr_key COLON arr_value COMMA?            { $$ = [ parseTree.makeEntry(PairComponentKey, { type: Arr, id: $1 }),
+    | str_arr_key COLON str_arr_value COMMA?    { $$ = [ parseTree.makeEntry(PairComponentKey, { type: Arr, id: $1 }),
                                                            parseTree.makeEntry(PairComponentValue, $3) ] }
     | any_key COLON any_value COMMA?            { $$ = [ parseTree.makeEntry(PairComponentKey, { type: Any, id: $1 }),
                                                        parseTree.makeEntry(PairComponentValue, $3) ] }
@@ -83,8 +92,12 @@ obj_key
     : OBJ attr                                  { $$ = $2 }
     ;
 
-arr_key
-    : (OPEN_SQB CLOSE_SQB)+ (str_key_type | num_key_type | bool_key_type | ref_key_type)
+str_arr_key
+    : sqb+ str_key                              { dim = $1.length; $$ = $2 }
+    ;
+
+sqb
+    : OPEN_SQB CLOSE_SQB
     ;
 
 any_key
@@ -92,8 +105,72 @@ any_key
     ;
 
 attr
-    : TEXT                                      { $$ = yytext.replace(/^"|"$/g, '') }
+    : TEXT                                      { $$ = yytext.replace(/^"|"$/g, ''); (collector && collector.push($$)); }
     ;
+
+str_arr_value
+    : IDENTITY                                  { $$ = ({ type: Fn,  value: $1 }) }
+    | FAIL                                      { $$ = ({ type: Fn,  value: $1 }) }
+    | str_arr_body_valid                        { $$ = ({ type: Fn,  value: $1 }) }
+    | (UNORDERED | CTX_USER_FN) str_arr_body_valid
+    ;
+
+str_arr_body_valid
+    : str_arr_body                              {
+                                                    buffer = rcg;
+                                                    // rcgCount and stack would reset to ideal count here
+                                                    rcg = null;
+                                                    ptrToCurrentRCG = null;
+                                                    dimEqstatus = valueDims.reduce(
+                                                        (carry, val) => val === carry ? carry : -1,
+                                                        dim
+                                                    );
+                                                    if (dimEqstatus === -1) {
+                                                        throw new Error('Array dimension does not match');
+                                                    }
+                                                    valueDims.length = 0;
+                                                    $$ = buffer
+                                                }
+    ;
+
+str_arr_body
+    : open_sqb_hook attr? (COMMA attr)* close_sqb_hook
+                                                { $$ = rcg }
+    | open_sqb_hook str_arr_body (COMMA str_arr_body)* close_sqb_hook
+                                                { $$ = rcg }
+    ;
+
+open_sqb_hook
+    : OPEN_SQB                                  {
+                                                    ptrToCurrentRCG = [];
+                                                    if (parent = stack[stack.length - 1]) {
+                                                        delete parent.__leaf__;
+                                                        parent.push(ptrToCurrentRCG);
+                                                    } else {
+                                                        // Start of stack. Root.
+                                                        rcg = ptrToCurrentRCG 
+                                                    }
+                                                    // Assign a leaf flag which later be deleted if the node becomes
+                                                    // parent
+                                                    ptrToCurrentRCG.__leaf__ = true;
+                                                    stack.push(ptrToCurrentRCG);
+                                                    collector = ptrToCurrentRCG;
+                                                    rcgCount += 1;
+                                                }
+    ;
+
+close_sqb_hook
+    : CLOSE_SQB                                 {
+                                                    abductedNode = stack.splice(stack.length - 1, 1)[0];
+                                                    if (abductedNode.__leaf__) {
+                                                        valueDims.push(rcgCount);
+                                                        delete abductedNode.__leaf__;
+                                                    }
+                                                    collector = null;
+                                                    rcgCount -= 1;
+                                                }
+    ;
+
 
 str_value
     : IDENTITY                                  { $$ = ({ type: Fn,  value: $1 }) }

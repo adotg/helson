@@ -367,12 +367,12 @@ describe("L=1 Object", () => {
     it(`should construct parse tree of an array of primitive types;
       Checks [ordered array, unordered array, multidim array]`, () => {
       const schema = `
-        typedef Alien {
-          []str "spaceships": ["Ret", "iBnu"],
-          [][]num "hediScore": [[8, 0.5], [7, 0.9]],
-          []str "weapon": unordered ["teleport", "telekinesis", "laser"]
+        typdef Alien {
+          [][][]str "spaceships": [[["this", "is"], ["really"], ["super"]], [["really"]], [["random"], ["ness"]]],
         }
       `;
+      const pt = parser.parse(schema);
+      console.log(JSON.stringify(pt, null, 2));
     });
   });
 });
