@@ -1,4 +1,6 @@
 %{
+/* Alert: https://stackoverflow.com/a/34339368/2474269 */
+
 parseTree = require('./parse-tree');
 
 Word = parseTree.Word
@@ -31,6 +33,21 @@ valueDims = [];
 ptrToCurrentRCG = null
 pathRCG = null
 rcgCount = 0
+
+function checkAndResetArrayDefEquality() {
+    buffer = rcg;
+    // rcgCount and stack would reset to ideal count here
+    rcg = null;
+    ptrToCurrentRCG = null;
+    dimEqstatus = valueDims.reduce(
+        (carry, val) => val === carry ? carry : -1,
+        dim
+    );
+    if (dimEqstatus === -1) {
+        throw new Error('Array dimension does not match');
+    }
+    valueDims.length = 0;
+}
 %}
 
 %ebnf
@@ -57,19 +74,25 @@ pair
 
 pair_def
     : str_key COLON str_value COMMA?            { $$ = [ parseTree.makeEntry(PairComponentKey, { type: Str, id: $1 }),
-                                                          parseTree.makeEntry(PairComponentValue, $3) ] }
+                                                        parseTree.makeEntry(PairComponentValue, $3) ] }
     | num_key COLON num_value COMMA?            { $$ = [ parseTree.makeEntry(PairComponentKey, { type: Num, id: $1 }),
-                                                          parseTree.makeEntry(PairComponentValue, $3) ] }
+                                                        parseTree.makeEntry(PairComponentValue, $3) ] }
     | bool_key COLON bool_value COMMA?          { $$ = [ parseTree.makeEntry(PairComponentKey, { type: Bool, id: $1 }),
-                                                          parseTree.makeEntry(PairComponentValue, $3) ] }
+                                                        parseTree.makeEntry(PairComponentValue, $3) ] }
     | ref_key COLON ref_value COMMA?            { $$ = [ parseTree.makeEntry(PairComponentKey, { type: Ref, typeArgs: $1[0], id: $1[1] }),
-                                                           parseTree.makeEntry(PairComponentValue, $3) ] }
+                                                        parseTree.makeEntry(PairComponentValue, $3) ] }
     | obj_key COLON obj_value COMMA?            { $$ = [ parseTree.makeEntry(PairComponentKey, { type: Obj, id: $1 }),
-                                                           parseTree.makeEntry(PairComponentValue, $3) ] }
-    | str_arr_key COLON str_arr_value COMMA?    { $$ = [ parseTree.makeEntry(PairComponentKey, { type: Arr, id: $1 }),
-                                                           parseTree.makeEntry(PairComponentValue, $3) ] }
+                                                        parseTree.makeEntry(PairComponentValue, $3) ] }
+    | str_arr_key COLON str_arr_value COMMA?    { $$ = [ parseTree.makeEntry(PairComponentKey, { type: Arr, typeof: Str, id: $1 }),
+                                                        parseTree.makeEntry(PairComponentValue, $3) ] }
+    | num_arr_key COLON num_arr_value COMMA?    { $$ = [ parseTree.makeEntry(PairComponentKey, { type: Arr, typeof: Num, id: $1 }),
+                                                        parseTree.makeEntry(PairComponentValue, $3) ] 
+    | bool_arr_key COLON bool_arr_value COMMA?    { $$ = [ parseTree.makeEntry(PairComponentKey, { type: Arr, typeof: Bool, id: $1 })
+                                                        parseTree.makeEntry(PairComponentValue, $3) ] }
+    | ref_arr_key COLON ref_arr_value COMMA?    { $$ = [ parseTree.makeEntry(PairComponentKey, { type: Arr, typeofExt: $1[0][0], id: $1[0][1], dim: $1[1] }),
+                                                        parseTree.makeEntry(PairComponentValue, $3) ] }
     | any_key COLON any_value COMMA?            { $$ = [ parseTree.makeEntry(PairComponentKey, { type: Any, id: $1 }),
-                                                       parseTree.makeEntry(PairComponentValue, $3) ] }
+                                                        parseTree.makeEntry(PairComponentValue, $3) ] }
     ;
 
 str_key
@@ -93,11 +116,23 @@ obj_key
     ;
 
 str_arr_key
-    : sqb+ str_key                              { dim = $1.length; $$ = $2 }
+    : sqbs str_key                              { dim = $1.length; $$ = $2 }
     ;
 
-sqb
-    : OPEN_SQB CLOSE_SQB
+num_arr_key
+    : sqbs num_key                              { dim = $1.length; $$ = $2 }
+    ;
+
+bool_arr_key
+    : sqbs bool_key                              { dim = $1.length; $$ = $2 }
+    ;
+
+ref_arr_key
+    : sqbs ref_key                              {$$ = [$2, $1.length /* dimension */]}
+    ;
+
+sqbs
+    : (OPEN_SQB CLOSE_SQB)+
     ;
 
 any_key
@@ -105,32 +140,28 @@ any_key
     ;
 
 attr
-    : TEXT                                      { $$ = yytext.replace(/^"|"$/g, ''); (collector && collector.push($$)); }
+    : TEXT                                      { $$ = yytext.replace(/^"|"$/g, ''); collector && collector.push($$); }
+    ;
+
+
+str_value
+    : IDENTITY                                  { $$ = ({ type: Fn,  value: $1 }) }
+    | FAIL                                      { $$ = ({ type: Fn,  value: $1 }) }
+    | attr                                      { $$ = ({ type: Fn,  value: AbEq, args: [$1] }) }
+    | REGEX                                     { $$ = ({ type: Fn,  value: AbEq, args: [$1, Word.Transformer.Str.Pattern] }) }
+    | CTX_USER_FN                               { $$ = ({ type: UFn, value: $1 }) }
     ;
 
 str_arr_value
     : IDENTITY                                  { $$ = ({ type: Fn,  value: $1 }) }
     | FAIL                                      { $$ = ({ type: Fn,  value: $1 }) }
-    | str_arr_body_valid                        { $$ = ({ type: Fn,  value: $1 }) }
+    | str_arr_body_valid                        { $$ = ({ type: Fn,  value: AbEq, args: [$1] }) }
     | (UNORDERED | CTX_USER_FN) str_arr_body_valid
+                                                { $$ = ({ type: Fn,  value: $1, args: [$2] }) }
     ;
 
 str_arr_body_valid
-    : str_arr_body                              {
-                                                    buffer = rcg;
-                                                    // rcgCount and stack would reset to ideal count here
-                                                    rcg = null;
-                                                    ptrToCurrentRCG = null;
-                                                    dimEqstatus = valueDims.reduce(
-                                                        (carry, val) => val === carry ? carry : -1,
-                                                        dim
-                                                    );
-                                                    if (dimEqstatus === -1) {
-                                                        throw new Error('Array dimension does not match');
-                                                    }
-                                                    valueDims.length = 0;
-                                                    $$ = buffer
-                                                }
+    : str_arr_body                              { checkAndResetArrayDefEquality(); $$ = buffer; }
     ;
 
 str_arr_body
@@ -171,15 +202,6 @@ close_sqb_hook
                                                 }
     ;
 
-
-str_value
-    : IDENTITY                                  { $$ = ({ type: Fn,  value: $1 }) }
-    | FAIL                                      { $$ = ({ type: Fn,  value: $1 }) }
-    | attr                                      { $$ = ({ type: Fn,  value: AbEq, args: [$1] }) }
-    | REGEX                                     { $$ = ({ type: Fn,  value: AbEq, args: [$1, Word.Transformer.Str.Pattern] }) }
-    | CTX_USER_FN                               { $$ = ({ type: UFn, value: $1 }) }
-    ;
-
 num_value
     : IDENTITY                                  { $$ = ({ type: Fn,  value: $1 }) }
     | FAIL                                      { $$ = ({ type: Fn,  value: $1 }) }
@@ -197,6 +219,29 @@ intervals
                                                 }Range,${$2 || null},${$4 || null}` }
     ;
 
+num_arr_value
+    : IDENTITY                                  { $$ = ({ type: Fn,  value: $1 }) }
+    | FAIL                                      { $$ = ({ type: Fn,  value: $1 }) }
+    | num_arr_body_valid                        { $$ = ({ type: Fn,  value: AbEq, args: [$1] }) }
+    | (UNORDERED | CTX_USER_FN) num_arr_body_valid
+                                                { $$ = ({ type: Fn,  value: $1, args: [$2] }) }
+    ;
+
+num_arr_body_valid
+    : num_arr_body                              { checkAndResetArrayDefEquality(); $$ = buffer; }
+    ;
+
+num_arr_body
+    : open_sqb_hook num_val_proxy? (COMMA num_val_proxy)* close_sqb_hook
+                                                { $$ = rcg }
+    | open_sqb_hook num_arr_body (COMMA num_arr_body)* close_sqb_hook
+                                                { $$ = rcg }
+    ;
+
+num_val_proxy
+    : NUMERIC                                   { collector && collector.push($$); }
+    ;
+
 bool_value
     : IDENTITY                                  { $$ = ({ type: Fn,   value: $1 }) }
     | FAIL                                      { $$ = ({ type: Fn,   value: $1 }) }
@@ -207,10 +252,42 @@ bool_value
     | CTX_USER_FN                               { $$ = ({ type: UFn,  value: $1 }) }
     ;
 
+bool_arr_value
+    : IDENTITY                                  { $$ = ({ type: Fn,  value: $1 }) }
+    | FAIL                                      { $$ = ({ type: Fn,  value: $1 }) }
+    | bool_arr_body_valid                       { $$ = ({ type: Fn,  value: AbEq, args: [$1] }) }
+    | (UNORDERED | CTX_USER_FN) bol_arr_body_valid
+                                                { $$ = ({ type: Fn,  value: $1, args: [$2] }) }
+    ;
+
+bool_arr_body_valid
+    : bool_arr_body                              { checkAndResetArrayDefEquality(); $$ = buffer; }
+    ;
+
+bool_arr_body
+    : open_sqb_hook bool_val_proxy? (COMMA bool_val_proxy)* close_sqb_hook
+                                                { $$ = rcg }
+    | open_sqb_hook bool_arr_body (COMMA bool_arr_body)* close_sqb_hook
+                                                { $$ = rcg }
+    ;
+
+bool_val_proxy
+    : TRUE                                      { collector && collector.push($$); }
+    | FALSE                                     { collector && collector.push($$); }
+    ;
+
 ref_value
     : IDENTITY                                  { $$ = ({ type: Fn,  value: $1 }) }
     | FAIL                                      { $$ = ({ type: Fn,  value: $1 }) }
     | CTX_USER_FN                               { $$ = ({ type: UFn, value: $1 }) }
+    ;
+
+ref_arr_value
+    : IDENTITY                                  { $$ = ({ type: Fn,  value: $1 }) }
+    | FAIL                                      { $$ = ({ type: Fn,  value: $1 }) }
+    | CTX_USER_FN                               { $$ = ({ type: UFn, value: $1 }) }
+    | ANYOF                                     { $$ = ({ type: Fn,  value: $1 }) }
+    | ALLOF                                     { $$ = ({ type: Fn,  value: $1 }) }
     ;
 
 obj_value
