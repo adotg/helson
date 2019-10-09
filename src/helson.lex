@@ -9,6 +9,7 @@ numeric         [0-9]+(\.[0-9]+)?
 \s+             /* ignore whitespace */
 
 typdef          return 'TYPEDEF'
+olist           return 'OLIST'
 optnl           return 'OPTIONAL'
 enum            return 'ENUM'
 str             return 'STR'

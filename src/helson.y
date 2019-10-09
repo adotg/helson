@@ -13,6 +13,7 @@ PairComponentKey = Word.PairComponentKey
 PairComponentValue = Word.PairComponentValue
 
 Str = Word.Str
+OList = Word.OList
 Num = Word.Num
 Bool = Word.Bool
 Ref = Word.Ref
@@ -33,6 +34,23 @@ valueDims = [];
 ptrToCurrentRCG = null
 pathRCG = null
 rcgCount = 0
+
+bits = 0x00
+// RightToLeft
+arrF = 0x01 // Array found
+
+function setArrFoundBit() {
+    bits = bits | arrF;
+    return true;
+}
+
+function isArrFound() {
+    return bits & arrF;
+}
+
+function resetFoundBits() {
+    bits = 0x00;
+}
 
 function checkAndResetArrayDefEquality() {
     buffer = rcg;
@@ -55,12 +73,18 @@ function checkAndResetArrayDefEquality() {
 %%
 
 program
-    : type_def* EOF                             { return parseTree.makeEntry(Program, { /* empty */ }, $1) }
+    : structs* EOF                              { return parseTree.makeEntry(Program, { /* empty */ }, $1) }
     ;
 
-type_def
-    : TYPEDEF S_ID def_body                     { $$ = parseTree.makeEntry(StructureDefinition, {},
-                                                    [parseTree.makeEntry(StructureIdentifier, { type: $1, id: $2 }), $3]) }
+structs
+    : (TYPEDEF | OLIST) S_ID def_body           {
+                                                    if ($1 === OList && isArrFound()) {
+                                                        throw new Error("An ordered list (olist) can't have array")
+                                                    }
+                                                    resetFoundBits()
+                                                    $$ = parseTree.makeEntry(StructureDefinition, {},
+                                                        [parseTree.makeEntry(StructureIdentifier, { type: $1, id: $2 }), $3])
+                                                }
     ;
 
 def_body
@@ -83,13 +107,13 @@ pair_def
                                                         parseTree.makeEntry(PairComponentValue, $3) ] }
     | obj_key COLON obj_value COMMA?            { $$ = [ parseTree.makeEntry(PairComponentKey, { type: Obj, id: $1 }),
                                                         parseTree.makeEntry(PairComponentValue, $3) ] }
-    | str_arr_key COLON str_arr_value COMMA?    { $$ = [ parseTree.makeEntry(PairComponentKey, { type: Arr, typeof: Str, id: $1 }),
+    | str_arr_key COLON str_arr_value COMMA?    { setArrFoundBit(); $$ = [ parseTree.makeEntry(PairComponentKey, { type: Arr, typeArgs: Str, id: $1 }),
                                                         parseTree.makeEntry(PairComponentValue, $3) ] }
-    | num_arr_key COLON num_arr_value COMMA?    { $$ = [ parseTree.makeEntry(PairComponentKey, { type: Arr, typeof: Num, id: $1 }),
-                                                        parseTree.makeEntry(PairComponentValue, $3) ] 
-    | bool_arr_key COLON bool_arr_value COMMA?    { $$ = [ parseTree.makeEntry(PairComponentKey, { type: Arr, typeof: Bool, id: $1 })
+    | num_arr_key COLON num_arr_value COMMA?    { setArrFoundBit(); $$ = [ parseTree.makeEntry(PairComponentKey, { type: Arr, typeArgs: Num, id: $1 }),
                                                         parseTree.makeEntry(PairComponentValue, $3) ] }
-    | ref_arr_key COLON ref_arr_value COMMA?    { $$ = [ parseTree.makeEntry(PairComponentKey, { type: Arr, typeofExt: $1[0][0], id: $1[0][1], dim: $1[1] }),
+    | bool_arr_key COLON bool_arr_value COMMA?  { setArrFoundBit(); $$ = [ parseTree.makeEntry(PairComponentKey, { type: Arr, typeArgs: Bool, id: $1 }),
+                                                        parseTree.makeEntry(PairComponentValue, $3) ] }
+    | ref_arr_key COLON ref_arr_value COMMA?    { setArrFoundBit(); $$ = [ parseTree.makeEntry(PairComponentKey, { type: Arr, typeArgs: $1[0][0], id: $1[0][1], dim: $1[1] }),
                                                         parseTree.makeEntry(PairComponentValue, $3) ] }
     | any_key COLON any_value COMMA?            { $$ = [ parseTree.makeEntry(PairComponentKey, { type: Any, id: $1 }),
                                                         parseTree.makeEntry(PairComponentValue, $3) ] }
