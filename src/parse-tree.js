@@ -32,7 +32,8 @@ const Word = {
   Rec: "Rec" /* Recursive */,
   Identity: "pass",
   Fail: "fail",
-  TypeDef: "typdef"
+  TypeDef: "typdef",
+  OList: "olist"
 };
 
 function sanitize(properties, children) {
