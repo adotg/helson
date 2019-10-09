@@ -364,15 +364,308 @@ describe("L=1 Object", () => {
   });
 
   describe("Compound Type", () => {
-    it(`should construct parse tree of an array of primitive types;
-      Checks [ordered array, unordered array, multidim array]`, () => {
-      const schema = `
-        typdef Alien {
-          [][][]str "spaceships": [[["this", "is"], ["really"], ["super"]], [["really"]], [["random"], ["ness"]]],
-        }
-      `;
-      const pt = parser.parse(schema);
-      console.log(JSON.stringify(pt, null, 2));
+    describe("Array", () => {
+      it(`should construct parse tree of an array of primitive types;
+        Checks [ordered array, unordered array, multidim array]`, () => {
+        const schema = `
+          typdef Power {
+            str "name": pass,
+            num "damage": [0, 100],
+            optnl num "range": [1, 50]
+          }
+          typdef Alien {
+            [][][]str "spaceships": [[["this", "is"], ["really"], ["super"]], [["really"]], [["random"], ["ness"]]],
+            []str "test": ["yooo", "yaa"],
+            []num "values": [1, 2, 3.33, 4],
+            optnl [][]bool "flags": [[true, false], [false, true], [true]],
+            []\`Power "power": pass
+          }
+        `;
+        const pt = parser.parse(schema);
+        expect(pt).to.deep.equal({
+          nodeType: Word.Program,
+          properties: {},
+          children: [
+            {
+              nodeType: Word.StructureDefinition,
+              properties: {},
+              children: [
+                {
+                  nodeType: Word.StructureIdentifier,
+                  properties: {
+                    type: "typdef",
+                    id: "Power"
+                  },
+                  children: []
+                },
+                {
+                  nodeType: Word.StructureBody,
+                  properties: {},
+                  children: [
+                    {
+                      nodeType: Word.PairDefinition,
+                      properties: {
+                        isOptional: false
+                      },
+                      children: [
+                        {
+                          nodeType: Word.PairComponentKey,
+                          properties: {
+                            type: Word.Str,
+                            id: "name"
+                          },
+                          children: []
+                        },
+                        {
+                          nodeType: Word.PairComponentValue,
+                          properties: {
+                            type: Word.Fn,
+                            value: Word.Identity
+                          },
+                          children: []
+                        }
+                      ]
+                    },
+                    {
+                      nodeType: Word.PairDefinition,
+                      properties: {
+                        isOptional: false
+                      },
+                      children: [
+                        {
+                          nodeType: Word.PairComponentKey,
+                          properties: {
+                            type: Word.Num,
+                            id: "damage"
+                          },
+                          children: []
+                        },
+                        {
+                          nodeType: Word.PairComponentValue,
+                          properties: {
+                            type: Word.Fn,
+                            value: "lcrcRange,0,100"
+                          },
+                          children: []
+                        }
+                      ]
+                    },
+                    {
+                      nodeType: Word.PairDefinition,
+                      properties: {
+                        isOptional: true
+                      },
+                      children: [
+                        {
+                          nodeType: Word.PairComponentKey,
+                          properties: {
+                            type: Word.Num,
+                            id: "range"
+                          },
+                          children: []
+                        },
+                        {
+                          nodeType: Word.PairComponentValue,
+                          properties: {
+                            type: Word.Fn,
+                            value: "lcrcRange,1,50"
+                          },
+                          children: []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              nodeType: Word.StructureDefinition,
+              properties: {},
+              children: [
+                {
+                  nodeType: Word.StructureIdentifier,
+                  properties: {
+                    type: Word.TypeDef,
+                    id: "Alien"
+                  },
+                  children: []
+                },
+                {
+                  nodeType: Word.StructureBody,
+                  properties: {},
+                  children: [
+                    {
+                      nodeType: Word.PairDefinition,
+                      properties: {
+                        isOptional: false
+                      },
+                      children: [
+                        {
+                          nodeType: Word.PairComponentKey,
+                          properties: {
+                            type: Word.Arr,
+                            typeof: Word.Str,
+                            id: "spaceships"
+                          },
+                          children: []
+                        },
+                        {
+                          nodeType: Word.PairComponentValue,
+                          properties: {
+                            type: Word.Fn,
+                            value: Word.AbEq,
+                            args: [
+                              [
+                                [["this", "is"], ["really"], ["super"]],
+                                [["really"]],
+                                [["random"], ["ness"]]
+                              ]
+                            ]
+                          },
+                          children: []
+                        }
+                      ]
+                    },
+                    {
+                      nodeType: Word.PairDefinition,
+                      properties: {
+                        isOptional: false
+                      },
+                      children: [
+                        {
+                          nodeType: Word.PairComponentKey,
+                          properties: {
+                            type: Word.Arr,
+                            typeof: Word.Str,
+                            id: "test"
+                          },
+                          children: []
+                        },
+                        {
+                          nodeType: Word.PairComponentValue,
+                          properties: {
+                            type: Word.Fn,
+                            value: Word.AbEq,
+                            args: [["yooo", "yaa"]]
+                          },
+                          children: []
+                        }
+                      ]
+                    },
+                    {
+                      nodeType: Word.PairDefinition,
+                      properties: {
+                        isOptional: false
+                      },
+                      children: [
+                        {
+                          nodeType: Word.PairComponentKey,
+                          properties: {
+                            type: Word.Arr,
+                            typeof: "Num",
+                            id: "values"
+                          },
+                          children: []
+                        },
+                        {
+                          nodeType: Word.PairComponentValue,
+                          properties: {
+                            type: Word.Fn,
+                            value: Word.AbEq,
+                            args: [["1", "2", "3.33", "4"]]
+                          },
+                          children: []
+                        }
+                      ]
+                    },
+                    {
+                      nodeType: Word.PairDefinition,
+                      properties: {
+                        isOptional: true
+                      },
+                      children: [
+                        {
+                          nodeType: Word.PairComponentKey,
+                          properties: {
+                            type: Word.Arr,
+                            typeof: Word.Bool,
+                            id: "flags"
+                          },
+                          children: []
+                        },
+                        {
+                          nodeType: Word.PairComponentValue,
+                          properties: {
+                            type: Word.Fn,
+                            value: Word.AbEq,
+                            args: [
+                              [["true", "false"], ["false", "true"], ["true"]]
+                            ]
+                          },
+                          children: []
+                        }
+                      ]
+                    },
+                    {
+                      nodeType: Word.PairDefinition,
+                      properties: {
+                        isOptional: false
+                      },
+                      children: [
+                        {
+                          nodeType: Word.PairComponentKey,
+                          properties: {
+                            type: Word.Arr,
+                            typeofExt: "Power",
+                            id: "power",
+                            dim: 1
+                          },
+                          children: []
+                        },
+                        {
+                          nodeType: Word.PairComponentValue,
+                          properties: {
+                            type: Word.Fn,
+                            value: Word.Identity
+                          },
+                          children: []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        });
+      });
+    });
+
+    describe("OList", () => {
+      it("", () => {
+        // In the form of
+        // [110, "Report submitted yesterday!", no-reply@mail.box, { isEncrypted: true }, ['moderator@mail.box', 'akash']]
+        const schema = `
+          olist Admins {
+            str "cc1": "moderator@mail.box",
+            str "cc2": pass
+          }
+          olist Report {
+            num "code": pass,
+            str "msg": pass,
+            str "from": "no-reply@mail.box",
+            obj "meta": {
+              bool "isEncrypted": pass,
+              optnl "isLoopback": true,
+            },
+            \`Admins "admins": pass,
+          }
+
+          typedef Response {
+            \`Report "reports": pass
+          }
+        `;
+      });
     });
   });
 });
