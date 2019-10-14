@@ -25,6 +25,7 @@ Fn = Word.Fn
 AbEq = Word.AbEq
 UFn = Word.UFn
 Rec = Word.Rec
+TypeDef = Word.TypeDef
 
 dim = null
 collector = null
@@ -78,16 +79,15 @@ program
     ;
 
 structs
-    : (TYPEDEF | OLIST) S_ID def_body           {
+    : TYPEDEF S_ID def_body                     {
                                                     _arrFoundFlag = isArrFound()
                                                     resetFoundBits()
-                                                    if ($1 === OList && _arrFoundFlag) {
-                                                        throw new Error("An ordered list (olist) can't have unbounded array member")
-                                                    } else if ($1 === Enum && _arrFoundFlag) {
-                                                        throw new Error("An enum can't have unbounded array member")
+                                                    if ($3[0] === OList && _arrFoundFlag) {
+                                                        // TODO probably not requireed to throw error
+                                                        /* throw new Error("An ordered list (olist) can't have unbounded array member") */
                                                     }
                                                     $$ = parseTree.makeEntry(StructureDefinition, {},
-                                                        [parseTree.makeEntry(StructureIdentifier, { type: $1, id: $2 }), $3])
+                                                        [parseTree.makeEntry(StructureIdentifier, { type: $3[0], id: $2 }), $3[1]])
                                                 }
     | enum                                      { $$ = parseTree.makeEntry(StructureDefinition, {}, [$1[0] /* identifier */, $1[1] /* body */]) }
     ;
@@ -96,7 +96,7 @@ enum
     : ENUM S_ID STR str_enum_body               { $$ = [parseTree.makeEntry(StructureIdentifier, { type: $1, id: $2, typeArgs: Str  }), $4] }
     | ENUM S_ID NUM num_enum_body               { $$ = [parseTree.makeEntry(StructureIdentifier, { type: $1, id: $2, typeArgs: Num  }), $4] }
     | ENUM S_ID BOOL bool_enum_body             { $$ = [parseTree.makeEntry(StructureIdentifier, { type: $1, id: $2, typeArgs: Bool }), $4] }
-    | ENUM S_ID REFERENCE S_ID obj_value        { $$ = [parseTree.makeEntry(StructureIdentifier, { type: $1, id: $2, typeArgs: Ref  }), $4] }
+    | ENUM S_ID REFERENCE S_ID obj_enum_body    { $$ = [parseTree.makeEntry(StructureIdentifier, { type: $1, id: $2, typeArgs: Ref, subType: $4 }), $5] }
     ;
 
 str_enum_body
@@ -138,8 +138,26 @@ bool_pair
                                                 }
     ;
 
+obj_enum_body
+    : OPEN_CURB obj_pair* CLOSE_CURB            -> parseTree.makeEntry(StructureBody, {}, $2)
+    ;
+
+obj_pair
+    : attr COLON ANYTHING COMMA?                {
+                                                    // WARN Validation happens after the ast is prepared
+                                                    match = $3.match(/\((.+)\)/)
+                                                    $$ = parseTree.makeEntry(PairDefinition, {}, [
+                                                        parseTree.makeEntry(PairComponentKey, { id: $1 }),
+                                                        parseTree.makeEntry(PairComponentValue, { value: match[1] })
+                                                    ])
+                                                }
+    ;
+
+
+
 def_body
-    : OPEN_CURB pair+ CLOSE_CURB                -> parseTree.makeEntry(StructureBody, {}, $2)
+    : OPEN_CURB pair+ CLOSE_CURB                { $$ = [TypeDef, parseTree.makeEntry(StructureBody, {}, $2)] }
+    | OPEN_SQB pair+ CLOSE_SQB                  { $$ = [OList, parseTree.makeEntry(StructureBody, {}, $2)] }
     ;
 
 pair
