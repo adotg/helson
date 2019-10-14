@@ -14,6 +14,7 @@ PairComponentValue = Word.PairComponentValue
 
 Str = Word.Str
 OList = Word.OList
+Enum = Word.Enum
 Num = Word.Num
 Bool = Word.Bool
 Ref = Word.Ref
@@ -78,12 +79,62 @@ program
 
 structs
     : (TYPEDEF | OLIST) S_ID def_body           {
-                                                    if ($1 === OList && isArrFound()) {
-                                                        throw new Error("An ordered list (olist) can't have array")
-                                                    }
+                                                    _arrFoundFlag = isArrFound()
                                                     resetFoundBits()
+                                                    if ($1 === OList && _arrFoundFlag) {
+                                                        throw new Error("An ordered list (olist) can't have unbounded array member")
+                                                    } else if ($1 === Enum && _arrFoundFlag) {
+                                                        throw new Error("An enum can't have unbounded array member")
+                                                    }
                                                     $$ = parseTree.makeEntry(StructureDefinition, {},
                                                         [parseTree.makeEntry(StructureIdentifier, { type: $1, id: $2 }), $3])
+                                                }
+    | enum                                      { $$ = parseTree.makeEntry(StructureDefinition, {}, [$1[0] /* identifier */, $1[1] /* body */]) }
+    ;
+
+enum
+    : ENUM S_ID STR str_enum_body               { $$ = [parseTree.makeEntry(StructureIdentifier, { type: $1, id: $2, typeArgs: Str  }), $4] }
+    | ENUM S_ID NUM num_enum_body               { $$ = [parseTree.makeEntry(StructureIdentifier, { type: $1, id: $2, typeArgs: Num  }), $4] }
+    | ENUM S_ID BOOL bool_enum_body             { $$ = [parseTree.makeEntry(StructureIdentifier, { type: $1, id: $2, typeArgs: Bool }), $4] }
+    | ENUM S_ID REFERENCE S_ID obj_value        { $$ = [parseTree.makeEntry(StructureIdentifier, { type: $1, id: $2, typeArgs: Ref  }), $4] }
+    ;
+
+str_enum_body
+    : OPEN_CURB str_pair* CLOSE_CURB            -> parseTree.makeEntry(StructureBody, {}, $2)
+    ;
+
+str_pair
+    : attr COLON str_value COMMA?               {
+                                                    $$ = parseTree.makeEntry(PairDefinition, {}, [
+                                                        parseTree.makeEntry(PairComponentKey, { id: $1 }),
+                                                        parseTree.makeEntry(PairComponentValue, $3)
+                                                    ])
+                                                }
+    ;
+
+num_enum_body
+    : OPEN_CURB num_pair* CLOSE_CURB COMMA?     -> parseTree.makeEntry(StructureBody, {}, $2)
+    ;
+
+num_pair
+    : attr COLON num_value COMMA?               {
+                                                    $$ = parseTree.makeEntry(PairDefinition, {}, [
+                                                        parseTree.makeEntry(PairComponentKey, { id: $1 }),
+                                                        parseTree.makeEntry(PairComponentValue, $3)
+                                                    ])
+                                                }
+    ;
+
+bool_enum_body
+    : OPEN_CURB bool_pair* CLOSE_CURB COMMA?    -> parseTree.makeEntry(StructureBody, {}, $2)
+    ;
+
+bool_pair
+    : attr COLON bool_value COMMA?              {
+                                                    $$ = parseTree.makeEntry(PairDefinition, {}, [
+                                                        parseTree.makeEntry(PairComponentKey, { id: $1 }),
+                                                        parseTree.makeEntry(PairComponentValue, $3)
+                                                    ])
                                                 }
     ;
 
@@ -304,6 +355,7 @@ ref_value
     : IDENTITY                                  { $$ = ({ type: Fn,  value: $1 }) }
     | FAIL                                      { $$ = ({ type: Fn,  value: $1 }) }
     | CTX_USER_FN                               { $$ = ({ type: UFn, value: $1 }) }
+    | REFERENCE attr                            { $$ = ({ type: Ref, value: $2 })}
     ;
 
 ref_arr_value

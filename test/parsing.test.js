@@ -365,7 +365,7 @@ describe("L=1 Object", () => {
 
   describe("Compound Type", () => {
     describe("Array", () => {
-      it(`should construct parse tree of an array of primitive types;
+      it(`should construct parse tree of an array;
         Checks [ordered array, unordered array, multidim array]`, () => {
         const schema = `
           typdef Power {
@@ -642,7 +642,7 @@ describe("L=1 Object", () => {
     });
 
     describe("OList", () => {
-      it("Should construct parse tree for ordered list without an array as a member", () => {
+      it("should construct parse tree for ordered list without an array as a member", () => {
         // In the form of
         // [110, "Report submitted yesterday!", no-reply@mail.box, { isEncrypted: true }, ['moderator@mail.box', 'akash']]
         const schema = `
@@ -983,6 +983,286 @@ describe("L=1 Object", () => {
             }
           ]
         });
+      });
+
+      it("should throw error when an array is present in ordered list (olist)", () => {
+        const schema = `
+          olist Admins {
+            str "cc1": "moderator@mail.box",
+            str "cc2": pass
+          }
+          olist Report {
+            num "code": pass,
+            str "msg": pass,
+            str "from": "no-reply@mail.box",
+            obj "meta": {
+              bool "isEncrypted": pass,
+              optnl bool "isLoopback": true,
+              optnl []str "otherInf": pass
+            },
+            \`Admins "admins": pass,
+          }
+
+          typdef Response {
+            \`Report "reports": pass
+          }
+        `;
+
+        try {
+          parser.parse(schema);
+          expect(true).to.be.false;
+        } catch (e) {
+          expect(true).to.be.true;
+        }
+        // TODO allow array inside olist
+        // expect(parser.parse(schema)).to.throw();
+      });
+    });
+
+    describe("Enum", () => {
+      it("should construct parse tree correctly with primitive types", () => {
+        const schema = `
+          enum Admins str {
+            "Highest": "mod@mail.box",
+            "A1": "nimona@mail.box",
+            "A2": "kidflash@mail.box"
+          }
+          olist Report {
+            \`Admins "by": \`"Highest"
+          }
+          typdef Response {
+            \`Report "reports": pass,
+            \`Admins "reviewer": \`"A1"
+          }
+        `;
+
+        const pt = parser.parse(schema);
+        expect(pt).to.deep.equal({
+          nodeType: Word.Program,
+          properties: {},
+          children: [
+            {
+              nodeType: Word.StructureDefinition,
+              properties: {},
+              children: [
+                {
+                  nodeType: Word.StructureIdentifier,
+                  properties: {
+                    type: Word.Enum,
+                    id: "Admins",
+                    typeArgs: Word.Str
+                  },
+                  children: []
+                },
+                {
+                  nodeType: Word.StructureBody,
+                  properties: {},
+                  children: [
+                    {
+                      nodeType: Word.PairDefinition,
+                      properties: {},
+                      children: [
+                        {
+                          nodeType: Word.PairComponentKey,
+                          properties: {
+                            id: "Highest"
+                          },
+                          children: []
+                        },
+                        {
+                          nodeType: Word.PairComponentValue,
+                          properties: {
+                            type: Word.Fn,
+                            value: Word.AbEq,
+                            args: ["mod@mail.box"]
+                          },
+                          children: []
+                        }
+                      ]
+                    },
+                    {
+                      nodeType: Word.PairDefinition,
+                      properties: {},
+                      children: [
+                        {
+                          nodeType: Word.PairComponentKey,
+                          properties: {
+                            id: "A1"
+                          },
+                          children: []
+                        },
+                        {
+                          nodeType: Word.PairComponentValue,
+                          properties: {
+                            type: Word.Fn,
+                            value: Word.AbEq,
+                            args: ["nimona@mail.box"]
+                          },
+                          children: []
+                        }
+                      ]
+                    },
+                    {
+                      nodeType: Word.PairDefinition,
+                      properties: {},
+                      children: [
+                        {
+                          nodeType: Word.PairComponentKey,
+                          properties: {
+                            id: "A2"
+                          },
+                          children: []
+                        },
+                        {
+                          nodeType: Word.PairComponentValue,
+                          properties: {
+                            type: Word.Fn,
+                            value: Word.AbEq,
+                            args: ["kidflash@mail.box"]
+                          },
+                          children: []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              nodeType: Word.StructureDefinition,
+              properties: {},
+              children: [
+                {
+                  nodeType: Word.StructureIdentifier,
+                  properties: {
+                    type: Word.OList,
+                    id: "Report"
+                  },
+                  children: []
+                },
+                {
+                  nodeType: Word.StructureBody,
+                  properties: {},
+                  children: [
+                    {
+                      nodeType: Word.PairDefinition,
+                      properties: {
+                        isOptional: false
+                      },
+                      children: [
+                        {
+                          nodeType: Word.PairComponentKey,
+                          properties: {
+                            type: Word.Ref,
+                            typeArgs: "Admins",
+                            id: "by"
+                          },
+                          children: []
+                        },
+                        {
+                          nodeType: Word.PairComponentValue,
+                          properties: {
+                            type: Word.Ref,
+                            value: "Highest"
+                          },
+                          children: []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              nodeType: Word.StructureDefinition,
+              properties: {},
+              children: [
+                {
+                  nodeType: Word.StructureIdentifier,
+                  properties: {
+                    type: Word.TypeDef,
+                    id: "Response"
+                  },
+                  children: []
+                },
+                {
+                  nodeType: Word.StructureBody,
+                  properties: {},
+                  children: [
+                    {
+                      nodeType: Word.PairDefinition,
+                      properties: {
+                        isOptional: false
+                      },
+                      children: [
+                        {
+                          nodeType: Word.PairComponentKey,
+                          properties: {
+                            type: Word.Ref,
+                            typeArgs: "Report",
+                            id: "reports"
+                          },
+                          children: []
+                        },
+                        {
+                          nodeType: Word.PairComponentValue,
+                          properties: {
+                            type: Word.Fn,
+                            value: Word.Identity
+                          },
+                          children: []
+                        }
+                      ]
+                    },
+                    {
+                      nodeType: Word.PairDefinition,
+                      properties: {
+                        isOptional: false
+                      },
+                      children: [
+                        {
+                          nodeType: Word.PairComponentKey,
+                          properties: {
+                            type: Word.Ref,
+                            typeArgs: "Admins",
+                            id: "reviewer"
+                          },
+                          children: []
+                        },
+                        {
+                          nodeType: Word.PairComponentValue,
+                          properties: {
+                            type: Word.Ref,
+                            value: "A1"
+                          },
+                          children: []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        });
+      });
+      it("should construct parse tree with composite type", () => {
+        const schema = `
+          olist Credential {
+            str "Name": pass,
+            str "Profession": pass,
+            num "medal": pass,
+          }
+
+          enum top3 \`Credential {
+            "#1": ["Deadpool", "Trash Talking", 10],
+            "#3": ["Flash", "Trash Talking", 8],
+            "#2": ["Spiderman", "Friendly", 8],
+          }
+        `;
+      });
+      it("should throw error if an unbounded array member is present inside a reference", () => {
+        // TODO write test cases
       });
     });
   });

@@ -33,7 +33,8 @@ const Word = {
   Identity: "pass",
   Fail: "fail",
   TypeDef: "typdef",
-  OList: "olist"
+  OList: "olist",
+  Enum: "enum"
 };
 
 function sanitize(properties, children) {
