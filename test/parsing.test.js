@@ -646,11 +646,11 @@ describe("L=1 Object", () => {
         // In the form of
         // [110, "Report submitted yesterday!", no-reply@mail.box, { isEncrypted: true }, ['moderator@mail.box', 'akash']]
         const schema = `
-          olist Admins {
+          typdef Admins [
             str "cc1": "moderator@mail.box",
             str "cc2": pass
-          }
-          olist Report {
+          ]
+          typdef Report [
             num "code": pass,
             str "msg": pass,
             str "from": "no-reply@mail.box",
@@ -659,7 +659,7 @@ describe("L=1 Object", () => {
               optnl bool "isLoopback": true,
             },
             \`Admins "admins": pass,
-          }
+          ]
 
           typdef Response {
             \`Report "reports": pass
@@ -819,7 +819,7 @@ describe("L=1 Object", () => {
                           children: []
                         },
                         {
-                          nodeType: "PairComponentValue",
+                          nodeType: Word.PairComponentValue,
                           properties: {
                             type: Word.Fn,
                             value: Word.AbEq,
@@ -844,9 +844,9 @@ describe("L=1 Object", () => {
                           children: []
                         },
                         {
-                          nodeType: "PairComponentValue",
+                          nodeType: Word.PairComponentValue,
                           properties: {
-                            type: "Rec",
+                            type: Word.Rec,
                             value: {
                               nodeType: Word.StructureBody,
                               properties: {},
@@ -923,7 +923,7 @@ describe("L=1 Object", () => {
                           children: []
                         },
                         {
-                          nodeType: "PairComponentValue",
+                          nodeType: Word.PairComponentValue,
                           properties: {
                             type: Word.Fn,
                             value: Word.Identity
@@ -968,7 +968,7 @@ describe("L=1 Object", () => {
                           children: []
                         },
                         {
-                          nodeType: "PairComponentValue",
+                          nodeType: Word.PairComponentValue,
                           properties: {
                             type: Word.Fn,
                             value: Word.Identity
@@ -987,11 +987,11 @@ describe("L=1 Object", () => {
 
       it("should throw error when an array is present in ordered list (olist)", () => {
         const schema = `
-          olist Admins {
+          typdef Admins [
             str "cc1": "moderator@mail.box",
             str "cc2": pass
-          }
-          olist Report {
+          ]
+          typdef Report [
             num "code": pass,
             str "msg": pass,
             str "from": "no-reply@mail.box",
@@ -1001,21 +1001,355 @@ describe("L=1 Object", () => {
               optnl []str "otherInf": pass
             },
             \`Admins "admins": pass,
-          }
+          ]
 
           typdef Response {
             \`Report "reports": pass
           }
         `;
 
-        try {
-          parser.parse(schema);
-          expect(true).to.be.false;
-        } catch (e) {
-          expect(true).to.be.true;
-        }
-        // TODO allow array inside olist
-        // expect(parser.parse(schema)).to.throw();
+        const pt = parser.parse(schema);
+        expect(pt).to.deep.equal({
+          nodeType: Word.Program,
+          properties: {},
+          children: [
+            {
+              nodeType: Word.StructureDefinition,
+              properties: {},
+              children: [
+                {
+                  nodeType: Word.StructureIdentifier,
+                  properties: {
+                    type: Word.OList,
+                    id: "Admins"
+                  },
+                  children: []
+                },
+                {
+                  nodeType: Word.StructureBody,
+                  properties: {},
+                  children: [
+                    {
+                      nodeType: Word.PairDefinition,
+                      properties: {
+                        isOptional: false
+                      },
+                      children: [
+                        {
+                          nodeType: Word.PairComponentKey,
+                          properties: {
+                            type: Word.Str,
+                            id: "cc1"
+                          },
+                          children: []
+                        },
+                        {
+                          nodeType: Word.PairComponentValue,
+                          properties: {
+                            type: Word.Fn,
+                            value: Word.AbEq,
+                            args: ["moderator@mail.box"]
+                          },
+                          children: []
+                        }
+                      ]
+                    },
+                    {
+                      nodeType: Word.PairDefinition,
+                      properties: {
+                        isOptional: false
+                      },
+                      children: [
+                        {
+                          nodeType: Word.PairComponentKey,
+                          properties: {
+                            type: Word.Str,
+                            id: "cc2"
+                          },
+                          children: []
+                        },
+                        {
+                          nodeType: Word.PairComponentValue,
+                          properties: {
+                            type: Word.Fn,
+                            value: Word.Identity
+                          },
+                          children: []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              nodeType: Word.StructureDefinition,
+              properties: {},
+              children: [
+                {
+                  nodeType: Word.StructureIdentifier,
+                  properties: {
+                    type: Word.OList,
+                    id: "Report"
+                  },
+                  children: []
+                },
+                {
+                  nodeType: Word.StructureBody,
+                  properties: {},
+                  children: [
+                    {
+                      nodeType: Word.PairDefinition,
+                      properties: {
+                        isOptional: false
+                      },
+                      children: [
+                        {
+                          nodeType: Word.PairComponentKey,
+                          properties: {
+                            type: Word.Num,
+                            id: "code"
+                          },
+                          children: []
+                        },
+                        {
+                          nodeType: Word.PairComponentValue,
+                          properties: {
+                            type: Word.Fn,
+                            value: Word.Identity
+                          },
+                          children: []
+                        }
+                      ]
+                    },
+                    {
+                      nodeType: Word.PairDefinition,
+                      properties: {
+                        isOptional: false
+                      },
+                      children: [
+                        {
+                          nodeType: Word.PairComponentKey,
+                          properties: {
+                            type: Word.Str,
+                            id: "msg"
+                          },
+                          children: []
+                        },
+                        {
+                          nodeType: Word.PairComponentValue,
+                          properties: {
+                            type: Word.Fn,
+                            value: Word.Identity
+                          },
+                          children: []
+                        }
+                      ]
+                    },
+                    {
+                      nodeType: Word.PairDefinition,
+                      properties: {
+                        isOptional: false
+                      },
+                      children: [
+                        {
+                          nodeType: Word.PairComponentKey,
+                          properties: {
+                            type: "Str",
+                            id: "from"
+                          },
+                          children: []
+                        },
+                        {
+                          nodeType: Word.PairComponentValue,
+                          properties: {
+                            type: Word.Fn,
+                            value: Word.AbEq,
+                            args: ["no-reply@mail.box"]
+                          },
+                          children: []
+                        }
+                      ]
+                    },
+                    {
+                      nodeType: Word.PairDefinition,
+                      properties: {
+                        isOptional: false
+                      },
+                      children: [
+                        {
+                          nodeType: Word.PairComponentKey,
+                          properties: {
+                            type: Word.Obj,
+                            id: "meta"
+                          },
+                          children: []
+                        },
+                        {
+                          nodeType: Word.PairComponentValue,
+                          properties: {
+                            type: "Rec",
+                            value: {
+                              nodeType: Word.StructureBody,
+                              properties: {},
+                              children: [
+                                {
+                                  nodeType: Word.PairDefinition,
+                                  properties: {
+                                    isOptional: false
+                                  },
+                                  children: [
+                                    {
+                                      nodeType: Word.PairComponentKey,
+                                      properties: {
+                                        type: Word.Bool,
+                                        id: "isEncrypted"
+                                      },
+                                      children: []
+                                    },
+                                    {
+                                      nodeType: Word.PairComponentValue,
+                                      properties: {
+                                        type: Word.Fn,
+                                        value: Word.Identity
+                                      },
+                                      children: []
+                                    }
+                                  ]
+                                },
+                                {
+                                  nodeType: Word.PairDefinition,
+                                  properties: {
+                                    isOptional: true
+                                  },
+                                  children: [
+                                    {
+                                      nodeType: Word.PairComponentKey,
+                                      properties: {
+                                        type: Word.Bool,
+                                        id: "isLoopback"
+                                      },
+                                      children: []
+                                    },
+                                    {
+                                      nodeType: Word.PairComponentValue,
+                                      properties: {
+                                        type: Word.Fn,
+                                        value: Word.AbEq,
+                                        args: ["true"]
+                                      },
+                                      children: []
+                                    }
+                                  ]
+                                },
+                                {
+                                  nodeType: Word.PairDefinition,
+                                  properties: {
+                                    isOptional: true
+                                  },
+                                  children: [
+                                    {
+                                      nodeType: Word.PairComponentKey,
+                                      properties: {
+                                        type: Word.Arr,
+                                        typeArgs: Word.Str,
+                                        id: "otherInf"
+                                      },
+                                      children: []
+                                    },
+                                    {
+                                      nodeType: Word.PairComponentValue,
+                                      properties: {
+                                        type: Word.Fn,
+                                        value: Word.Identity
+                                      },
+                                      children: []
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          },
+                          children: []
+                        }
+                      ]
+                    },
+                    {
+                      nodeType: Word.PairDefinition,
+                      properties: {
+                        isOptional: false
+                      },
+                      children: [
+                        {
+                          nodeType: Word.PairComponentKey,
+                          properties: {
+                            type: Word.Ref,
+                            typeArgs: "Admins",
+                            id: "admins"
+                          },
+                          children: []
+                        },
+                        {
+                          nodeType: Word.PairComponentValue,
+                          properties: {
+                            type: Word.Fn,
+                            value: Word.Identity
+                          },
+                          children: []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              nodeType: Word.StructureDefinition,
+              properties: {},
+              children: [
+                {
+                  nodeType: Word.StructureIdentifier,
+                  properties: {
+                    type: Word.TypeDef,
+                    id: "Response"
+                  },
+                  children: []
+                },
+                {
+                  nodeType: Word.StructureBody,
+                  properties: {},
+                  children: [
+                    {
+                      nodeType: Word.PairDefinition,
+                      properties: {
+                        isOptional: false
+                      },
+                      children: [
+                        {
+                          nodeType: Word.PairComponentKey,
+                          properties: {
+                            type: Word.Ref,
+                            typeArgs: "Report",
+                            id: "reports"
+                          },
+                          children: []
+                        },
+                        {
+                          nodeType: Word.PairComponentValue,
+                          properties: {
+                            type: Word.Fn,
+                            value: Word.Identity
+                          },
+                          children: []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        });
       });
     });
 
@@ -1027,9 +1361,9 @@ describe("L=1 Object", () => {
             "A1": "nimona@mail.box",
             "A2": "kidflash@mail.box"
           }
-          olist Report {
+          typdef Report [
             \`Admins "by": \`"Highest"
-          }
+          ]
           typdef Response {
             \`Report "reports": pass,
             \`Admins "reviewer": \`"A1"
@@ -1248,21 +1582,328 @@ describe("L=1 Object", () => {
       });
       it("should construct parse tree with composite type", () => {
         const schema = `
-          olist Credential {
-            str "Name": pass,
-            str "Profession": pass,
-            num "medal": pass,
+          typdef Competition {
+            num "code": pass,
+            str "name": pass,
+            num "pos": pass
           }
 
-          enum top3 \`Credential {
-            "#1": ["Deadpool", "Trash Talking", 10],
-            "#3": ["Flash", "Trash Talking", 8],
-            "#2": ["Spiderman", "Friendly", 8],
+          typdef Credential [
+            str "Name": pass,
+            str "Profession": pass,
+            num "medal": (1, 5),
+            []\`Competition "competitionResult": pass
+          ]
+
+          enum Top3 \`Credential {
+            "#1": (["Deadpool", "Trash Talking", 10, [{ "code": 0, "name": "high jump", "pos": 1}, { "code": 1, "name": "high jump", "pos": 2}]]),
+            "#3": (["Flash", "Trash Talking", 8, [{ "code", 0, "name": "running", "pos": 1}]]),
+            "#2": (["Spiderman", "Friendly", 8, [{ "code", 0, "name": "long jump", "pos": 1}]])
           }
         `;
-      });
-      it("should throw error if an unbounded array member is present inside a reference", () => {
-        // TODO write test cases
+
+        const pt = parser.parse(schema);
+        expect(pt).to.deep.equal({
+          nodeType: Word.Program,
+          properties: {},
+          children: [
+            {
+              nodeType: Word.StructureDefinition,
+              properties: {},
+              children: [
+                {
+                  nodeType: Word.StructureIdentifier,
+                  properties: {
+                    type: Word.TypeDef,
+                    id: "Competition"
+                  },
+                  children: []
+                },
+                {
+                  nodeType: Word.StructureBody,
+                  properties: {},
+                  children: [
+                    {
+                      nodeType: Word.PairDefinition,
+                      properties: {
+                        isOptional: false
+                      },
+                      children: [
+                        {
+                          nodeType: Word.PairComponentKey,
+                          properties: {
+                            type: Word.Num,
+                            id: "code"
+                          },
+                          children: []
+                        },
+                        {
+                          nodeType: Word.PairComponentValue,
+                          properties: {
+                            type: Word.Fn,
+                            value: Word.Identity
+                          },
+                          children: []
+                        }
+                      ]
+                    },
+                    {
+                      nodeType: Word.PairDefinition,
+                      properties: {
+                        isOptional: false
+                      },
+                      children: [
+                        {
+                          nodeType: Word.PairComponentKey,
+                          properties: {
+                            type: Word.Str,
+                            id: "name"
+                          },
+                          children: []
+                        },
+                        {
+                          nodeType: Word.PairComponentValue,
+                          properties: {
+                            type: Word.Fn,
+                            value: Word.Identity
+                          },
+                          children: []
+                        }
+                      ]
+                    },
+                    {
+                      nodeType: Word.PairDefinition,
+                      properties: {
+                        isOptional: false
+                      },
+                      children: [
+                        {
+                          nodeType: Word.PairComponentKey,
+                          properties: {
+                            type: Word.Num,
+                            id: "pos"
+                          },
+                          children: []
+                        },
+                        {
+                          nodeType: Word.PairComponentValue,
+                          properties: {
+                            type: Word.Fn,
+                            value: Word.Identity
+                          },
+                          children: []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              nodeType: Word.StructureDefinition,
+              properties: {},
+              children: [
+                {
+                  nodeType: Word.StructureIdentifier,
+                  properties: {
+                    type: "olist",
+                    id: "Credential"
+                  },
+                  children: []
+                },
+                {
+                  nodeType: Word.StructureBody,
+                  properties: {},
+                  children: [
+                    {
+                      nodeType: Word.PairDefinition,
+                      properties: {
+                        isOptional: false
+                      },
+                      children: [
+                        {
+                          nodeType: Word.PairComponentKey,
+                          properties: {
+                            type: "Str",
+                            id: "Name"
+                          },
+                          children: []
+                        },
+                        {
+                          nodeType: Word.PairComponentValue,
+                          properties: {
+                            type: Word.Fn,
+                            value: Word.Identity
+                          },
+                          children: []
+                        }
+                      ]
+                    },
+                    {
+                      nodeType: Word.PairDefinition,
+                      properties: {
+                        isOptional: false
+                      },
+                      children: [
+                        {
+                          nodeType: Word.PairComponentKey,
+                          properties: {
+                            type: "Str",
+                            id: "Profession"
+                          },
+                          children: []
+                        },
+                        {
+                          nodeType: Word.PairComponentValue,
+                          properties: {
+                            type: Word.Fn,
+                            value: Word.Identity
+                          },
+                          children: []
+                        }
+                      ]
+                    },
+                    {
+                      nodeType: Word.PairDefinition,
+                      properties: {
+                        isOptional: false
+                      },
+                      children: [
+                        {
+                          nodeType: Word.PairComponentKey,
+                          properties: {
+                            type: Word.Num,
+                            id: "medal"
+                          },
+                          children: []
+                        },
+                        {
+                          nodeType: Word.PairComponentValue,
+                          properties: {
+                            type: Word.Fn,
+                            value: "loroRange,1,5"
+                          },
+                          children: []
+                        }
+                      ]
+                    },
+                    {
+                      nodeType: Word.PairDefinition,
+                      properties: {
+                        isOptional: false
+                      },
+                      children: [
+                        {
+                          nodeType: Word.PairComponentKey,
+                          properties: {
+                            type: "Arr",
+                            typeArgs: "Competition",
+                            id: "competitionResult",
+                            dim: 1
+                          },
+                          children: []
+                        },
+                        {
+                          nodeType: Word.PairComponentValue,
+                          properties: {
+                            type: Word.Fn,
+                            value: Word.Identity
+                          },
+                          children: []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              nodeType: Word.StructureDefinition,
+              properties: {},
+              children: [
+                {
+                  nodeType: Word.StructureIdentifier,
+                  properties: {
+                    type: Word.Enum,
+                    id: "Top3",
+                    typeArgs: Word.Ref,
+                    subType: "Credential"
+                  },
+                  children: []
+                },
+                {
+                  nodeType: Word.StructureBody,
+                  properties: {},
+                  children: [
+                    {
+                      nodeType: Word.PairDefinition,
+                      properties: {},
+                      children: [
+                        {
+                          nodeType: Word.PairComponentKey,
+                          properties: {
+                            id: "#1"
+                          },
+                          children: []
+                        },
+                        {
+                          nodeType: Word.PairComponentValue,
+                          properties: {
+                            value:
+                              '["Deadpool", "Trash Talking", 10, [{ "code": 0, "name": "high jump", "pos": 1}, { "code": 1, "name": "high jump", "pos": 2}]]'
+                          },
+                          children: []
+                        }
+                      ]
+                    },
+                    {
+                      nodeType: Word.PairDefinition,
+                      properties: {},
+                      children: [
+                        {
+                          nodeType: Word.PairComponentKey,
+                          properties: {
+                            id: "#3"
+                          },
+                          children: []
+                        },
+                        {
+                          nodeType: Word.PairComponentValue,
+                          properties: {
+                            value:
+                              '["Flash", "Trash Talking", 8, [{ "code", 0, "name": "running", "pos": 1}]]'
+                          },
+                          children: []
+                        }
+                      ]
+                    },
+                    {
+                      nodeType: Word.PairDefinition,
+                      properties: {},
+                      children: [
+                        {
+                          nodeType: Word.PairComponentKey,
+                          properties: {
+                            id: "#2"
+                          },
+                          children: []
+                        },
+                        {
+                          nodeType: Word.PairComponentValue,
+                          properties: {
+                            value:
+                              '["Spiderman", "Friendly", 8, [{ "code", 0, "name": "long jump", "pos": 1}]]'
+                          },
+                          children: []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        });
       });
     });
   });
