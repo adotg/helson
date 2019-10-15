@@ -83,7 +83,7 @@ structs
                                                     _arrFoundFlag = isArrFound()
                                                     resetFoundBits()
                                                     if ($3[0] === OList && _arrFoundFlag) {
-                                                        // TODO probably not requireed to throw error
+                                                        // TODO probably not required to throw error
                                                         /* throw new Error("An ordered list (olist) can't have unbounded array member") */
                                                     }
                                                     $$ = parseTree.makeEntry(StructureDefinition, {},
@@ -387,7 +387,7 @@ ref_arr_value
 obj_value
     : IDENTITY                                  { $$ = ({ type: Fn,  value: $1 }) }
     | FAIL                                      { $$ = ({ type: Fn,  value: $1 }) }
-    | def_body                                  { $$ = ({ type: Rec, value: $1 }) }
+    | def_body                                  { $$ = ({ type: Rec, value: $1[1] }) }
     | CTX_USER_FN                               { $$ = ({ type: UFn, value: $1 }) }
     ;
 

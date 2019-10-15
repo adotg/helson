@@ -91,7 +91,7 @@ case 2:
                                                     _arrFoundFlag = isArrFound()
                                                     resetFoundBits()
                                                     if ($$[$0][0] === OList && _arrFoundFlag) {
-                                                        // TODO probably not requireed to throw error
+                                                        // TODO probably not required to throw error
                                                         /* throw new Error("An ordered list (olist) can't have unbounded array member") */
                                                     }
                                                     this.$ = parseTree.makeEntry(StructureDefinition, {},
@@ -277,7 +277,7 @@ case 89:
  this.$ = ({ type: Ref, value: $$[$0] })
 break;
 case 97:
- this.$ = ({ type: Rec, value: $$[$0] }) 
+ this.$ = ({ type: Rec, value: $$[$0][1] }) 
 break;
 case 101: case 103: case 107: case 113: case 119: case 153: case 155: case 169: case 171: case 177: case 179:
 this.$ = [];
