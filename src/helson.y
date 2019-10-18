@@ -1,6 +1,8 @@
 %{
 /* Alert: https://stackoverflow.com/a/34339368/2474269 */
 
+// TODO recursive enum not supported, throw error message
+
 parseTree = require('./parse-tree');
 
 Word = parseTree.Word
@@ -82,10 +84,10 @@ structs
     : TYPEDEF S_ID def_body                     {
                                                     _arrFoundFlag = isArrFound()
                                                     resetFoundBits()
-                                                    if ($3[0] === OList && _arrFoundFlag) {
-                                                        // TODO probably not required to throw error
+                                                    /* if ($3[0] === OList && _arrFoundFlag) { */
+                                                        // probably a valid caase; not required to throw error
                                                         /* throw new Error("An ordered list (olist) can't have unbounded array member") */
-                                                    }
+                                                    /* } */
                                                     $$ = parseTree.makeEntry(StructureDefinition, {},
                                                         [parseTree.makeEntry(StructureIdentifier, { type: $3[0], id: $2 }), $3[1]])
                                                 }
@@ -104,10 +106,14 @@ str_enum_body
     ;
 
 str_pair
-    : attr COLON str_value COMMA?               {
+    : attr COLON attr COMMA?                    {
                                                     $$ = parseTree.makeEntry(PairDefinition, {}, [
                                                         parseTree.makeEntry(PairComponentKey, { id: $1 }),
-                                                        parseTree.makeEntry(PairComponentValue, $3)
+                                                        parseTree.makeEntry(PairComponentValue, { 
+                                                            type: Word.Fn,
+                                                            value: Word.Assign,
+                                                            args: [$3]
+                                                        })
                                                     ])
                                                 }
     ;
@@ -117,10 +123,14 @@ num_enum_body
     ;
 
 num_pair
-    : attr COLON num_value COMMA?               {
+    : attr COLON NUMERIC COMMA?                 {
                                                     $$ = parseTree.makeEntry(PairDefinition, {}, [
                                                         parseTree.makeEntry(PairComponentKey, { id: $1 }),
-                                                        parseTree.makeEntry(PairComponentValue, $3)
+                                                        parseTree.makeEntry(PairComponentValue, {
+                                                            type: Word.Fn,
+                                                            value: Word.Assign,
+                                                            args: [$3]
+                                                        })
                                                     ])
                                                 }
     ;
@@ -130,10 +140,14 @@ bool_enum_body
     ;
 
 bool_pair
-    : attr COLON bool_value COMMA?              {
+    : attr COLON (TRUE | FALSE) COMMA?          {
                                                     $$ = parseTree.makeEntry(PairDefinition, {}, [
                                                         parseTree.makeEntry(PairComponentKey, { id: $1 }),
-                                                        parseTree.makeEntry(PairComponentValue, $3)
+                                                        parseTree.makeEntry(PairComponentValue, {
+                                                            type: Word.Fn,
+                                                            value: Word.Assign,
+                                                            args: [$3]
+                                                        })
                                                     ])
                                                 }
     ;
@@ -148,7 +162,11 @@ obj_pair
                                                     match = $3.match(/\((.+)\)/)
                                                     $$ = parseTree.makeEntry(PairDefinition, {}, [
                                                         parseTree.makeEntry(PairComponentKey, { id: $1 }),
-                                                        parseTree.makeEntry(PairComponentValue, { value: match[1] })
+                                                        parseTree.makeEntry(PairComponentValue, {
+                                                            type: Word.Fn,
+                                                            value: Word.Assign,
+                                                            args: match[1]
+                                                        })
                                                     ])
                                                 }
     ;
@@ -332,7 +350,7 @@ num_arr_body
     ;
 
 num_val_proxy
-    : NUMERIC                                   { collector && collector.push($$); }
+    : NUMERIC                                   { collector && collector.push(+$$); }
     ;
 
 bool_value
@@ -380,8 +398,6 @@ ref_arr_value
     : IDENTITY                                  { $$ = ({ type: Fn,  value: $1 }) }
     | FAIL                                      { $$ = ({ type: Fn,  value: $1 }) }
     | CTX_USER_FN                               { $$ = ({ type: UFn, value: $1 }) }
-    | ANYOF                                     { $$ = ({ type: Fn,  value: $1 }) }
-    | ALLOF                                     { $$ = ({ type: Fn,  value: $1 }) }
     ;
 
 obj_value
