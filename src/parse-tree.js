@@ -29,6 +29,7 @@ const Word = {
   Fn: "Fn",
   UFn: "UFn",
   AbEq: "AbEq" /* Absolute values equal */,
+  Assign: "Assign",
   Rec: "Rec" /* Recursive */,
   Identity: "pass",
   Fail: "fail",

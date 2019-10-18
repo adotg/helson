@@ -2,7 +2,7 @@ const expect = require("chai").expect;
 const parser = require("../src/helson").parser; // temporary location before the build
 const { Word } = require("../src/parse-tree"); // temporary location before the build
 
-describe("L=1 Object", () => {
+describe("Parse Tree", () => {
   describe("Primitive Type", () => {
     it(`should construct parse tree for a schema with keys=2;
       Checks [typdef, str with pass, optnl, num with rangeFn]`, () => {
@@ -572,7 +572,7 @@ describe("L=1 Object", () => {
                           properties: {
                             type: Word.Fn,
                             value: Word.AbEq,
-                            args: [["1", "2", "3.33", "4"]]
+                            args: [[1, 2, 3.33, 4]]
                           },
                           children: []
                         }
@@ -1155,7 +1155,7 @@ describe("L=1 Object", () => {
                         {
                           nodeType: Word.PairComponentKey,
                           properties: {
-                            type: "Str",
+                            type: Word.Str,
                             id: "from"
                           },
                           children: []
@@ -1407,7 +1407,7 @@ describe("L=1 Object", () => {
                           nodeType: Word.PairComponentValue,
                           properties: {
                             type: Word.Fn,
-                            value: Word.AbEq,
+                            value: Word.Assign,
                             args: ["mod@mail.box"]
                           },
                           children: []
@@ -1429,7 +1429,7 @@ describe("L=1 Object", () => {
                           nodeType: Word.PairComponentValue,
                           properties: {
                             type: Word.Fn,
-                            value: Word.AbEq,
+                            value: Word.Assign,
                             args: ["nimona@mail.box"]
                           },
                           children: []
@@ -1451,7 +1451,7 @@ describe("L=1 Object", () => {
                           nodeType: Word.PairComponentValue,
                           properties: {
                             type: Word.Fn,
-                            value: Word.AbEq,
+                            value: Word.Assign,
                             args: ["kidflash@mail.box"]
                           },
                           children: []
@@ -1724,7 +1724,7 @@ describe("L=1 Object", () => {
                         {
                           nodeType: Word.PairComponentKey,
                           properties: {
-                            type: "Str",
+                            type: Word.Str,
                             id: "Name"
                           },
                           children: []
@@ -1748,7 +1748,7 @@ describe("L=1 Object", () => {
                         {
                           nodeType: Word.PairComponentKey,
                           properties: {
-                            type: "Str",
+                            type: Word.Str,
                             id: "Profession"
                           },
                           children: []
@@ -1849,7 +1849,9 @@ describe("L=1 Object", () => {
                         {
                           nodeType: Word.PairComponentValue,
                           properties: {
-                            value:
+                            type: Word.Fn,
+                            value: Word.Assign,
+                            args:
                               '["Deadpool", "Trash Talking", 10, [{ "code": 0, "name": "high jump", "pos": 1}, { "code": 1, "name": "high jump", "pos": 2}]]'
                           },
                           children: []
@@ -1870,7 +1872,9 @@ describe("L=1 Object", () => {
                         {
                           nodeType: Word.PairComponentValue,
                           properties: {
-                            value:
+                            type: Word.Fn,
+                            value: Word.Assign,
+                            args:
                               '["Flash", "Trash Talking", 8, [{ "code", 0, "name": "running", "pos": 1}]]'
                           },
                           children: []
@@ -1891,7 +1895,9 @@ describe("L=1 Object", () => {
                         {
                           nodeType: Word.PairComponentValue,
                           properties: {
-                            value:
+                            type: Word.Fn,
+                            value: Word.Assign,
+                            args:
                               '["Spiderman", "Friendly", 8, [{ "code", 0, "name": "long jump", "pos": 1}]]'
                           },
                           children: []
