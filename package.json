@@ -5,6 +5,7 @@
   "main": "dist/helson.js",
   "scripts": {
     "test": "npm run generate && mv helson.js src/helson.js && mocha",
+    "test:debug": "npm run generate && mv helson.js src/helson.js && mocha --inspect-brk=0.0.0.0:9229",
     "start:debug": "node --inspect-brk=0.0.0.0:9229 src/index",
     "generate": "jison src/helson.y src/helson.lex"
   },
