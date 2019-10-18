@@ -2,8 +2,6 @@ const walker = require("./walker");
 const Word = require("./parse-tree").Word;
 const context = require("./context");
 
-// TODO remove the dependency graph. Iterator takes care of it now.
-
 const Indices = {
   Optionality: 0,
   TypeTest: 1,
@@ -11,7 +9,7 @@ const Indices = {
 };
 
 function getRecursiveObjectValueStub() {
-  return [Word.Fn, Word.Identity];
+  return [Word.Fn, Word.Identity, null, { ns: context.NS.System }];
 }
 
 function getRecursiveObjectMountStub(id, recObject) {
@@ -33,25 +31,35 @@ function getRecursiveObjectMountStub(id, recObject) {
 }
 
 function transformer(pt /* parse tree */) {
-  const ast = {};
+  const ast = {
+    [Word.Enum]: {},
+    [Word.TypeDef]: {},
+    [Word.OList]: {}
+  };
 
   // Walking through the node happens in Depth First Order. The closure is created with this
-  // assumption only. No explicit check is done which goes outside the assumption set.
+  // assumption. No explicit check is done which goes outside the assumption set.
 
   let structure = {
     type: null,
-    id: null
+    id: null,
+    typeArgs: null,
+    subType: null
   };
 
   let structureBody = null;
   let pairConfig = null;
   let isOptional = null;
+  let astMount = null;
 
   walker(pt, {
     [Word.StructureDefinition]: {
       exit: () => {
         structure.type = null;
         structure.id = null;
+        structure.typeArgs = null;
+        structure.subType = null;
+        astMount = null;
       }
     },
 
@@ -59,12 +67,21 @@ function transformer(pt /* parse tree */) {
       enter: node => {
         structure.type = node.properties.type;
         structure.id = node.properties.id;
+        structure.typeArgs =
+          node.properties.typeArgs === undefined
+            ? null
+            : node.properties.typeArgs;
+        structure.subType =
+          node.properties.subType === undefined
+            ? null
+            : node.properties.subType;
+        astMount = ast[structure.type];
       }
     },
 
     [Word.StructureBody]: {
       enter: () => {
-        ast[structure.id] = structureBody = {};
+        astMount[structure.id] = structureBody = {};
       },
 
       exit: () => {
@@ -75,9 +92,13 @@ function transformer(pt /* parse tree */) {
     [Word.PairDefinition]: {
       enter: node => {
         isOptional = node.properties.isOptional;
-        pairConfig = {
-          preProcessor: ["optionality", isOptional]
-        };
+        if (structure.type === Word.Enum) {
+          pairConfig = {};
+        } else {
+          pairConfig = {
+            preProcessor: ["optionality", isOptional]
+          };
+        }
       },
       exit: () => {
         structureBody[pairConfig.keyId] = pairConfig;
@@ -88,10 +109,19 @@ function transformer(pt /* parse tree */) {
 
     [Word.PairComponentKey]: {
       enter: node => {
-        pairConfig.typeProcessor = [
-          node.properties.type,
-          node.properties.typeArgs
-        ];
+        if (structure.type === Word.Enum) {
+          pairConfig.typeProcessor = [
+            structure.typeArgs,
+            structure.subType === undefined ? null : structure.subType
+          ];
+        } else {
+          pairConfig.typeProcessor = [
+            node.properties.type,
+            node.properties.typeArgs === undefined
+              ? null
+              : node.properties.typeArgs
+          ];
+        }
         pairConfig.keyId = node.properties.id;
       }
     },
@@ -115,11 +145,6 @@ function transformer(pt /* parse tree */) {
               fn = node.properties.value;
               expectation = true;
               break;
-            case Word.Abs:
-              ns = context.NS.System;
-              fn = "isEqual";
-              expectation = node.properties.value;
-              break;
             case Word.UFn:
               ns = context.NS.User;
               fn = node.properties.value;
@@ -127,7 +152,9 @@ function transformer(pt /* parse tree */) {
           }
           pairConfig.valueResolver = [
             node.properties.type,
-            node.properties.value
+            node.properties.value,
+            node.properties.args === undefined ? null : node.properties.args,
+            { ns }
           ];
         }
       }
