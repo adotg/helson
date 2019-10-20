@@ -111,7 +111,7 @@ str_pair
                                                         parseTree.makeEntry(PairComponentKey, { id: $1 }),
                                                         parseTree.makeEntry(PairComponentValue, { 
                                                             type: Word.Fn,
-                                                            value: Word.Assign,
+                                                            value: Word.AbEq,
                                                             args: [$3]
                                                         })
                                                     ])
@@ -128,8 +128,8 @@ num_pair
                                                         parseTree.makeEntry(PairComponentKey, { id: $1 }),
                                                         parseTree.makeEntry(PairComponentValue, {
                                                             type: Word.Fn,
-                                                            value: Word.Assign,
-                                                            args: [$3]
+                                                            value: Word.AbEq,
+                                                            args: [+$3]
                                                         })
                                                     ])
                                                 }
@@ -145,7 +145,7 @@ bool_pair
                                                         parseTree.makeEntry(PairComponentKey, { id: $1 }),
                                                         parseTree.makeEntry(PairComponentValue, {
                                                             type: Word.Fn,
-                                                            value: Word.Assign,
+                                                            value: Word.AbEq,
                                                             args: [$3]
                                                         })
                                                     ])
@@ -164,7 +164,7 @@ obj_pair
                                                         parseTree.makeEntry(PairComponentKey, { id: $1 }),
                                                         parseTree.makeEntry(PairComponentValue, {
                                                             type: Word.Fn,
-                                                            value: Word.Assign,
+                                                            value: Word.AbEq,
                                                             args: match[1]
                                                         })
                                                     ])
@@ -194,14 +194,71 @@ pair_def
                                                         parseTree.makeEntry(PairComponentValue, $3) ] }
     | obj_key COLON obj_value COMMA?            { $$ = [ parseTree.makeEntry(PairComponentKey, { type: Obj, id: $1 }),
                                                         parseTree.makeEntry(PairComponentValue, $3) ] }
-    | str_arr_key COLON str_arr_value COMMA?    { setArrFoundBit(); $$ = [ parseTree.makeEntry(PairComponentKey, { type: Arr, typeArgs: Str, id: $1 }),
-                                                        parseTree.makeEntry(PairComponentValue, $3) ] }
-    | num_arr_key COLON num_arr_value COMMA?    { setArrFoundBit(); $$ = [ parseTree.makeEntry(PairComponentKey, { type: Arr, typeArgs: Num, id: $1 }),
-                                                        parseTree.makeEntry(PairComponentValue, $3) ] }
-    | bool_arr_key COLON bool_arr_value COMMA?  { setArrFoundBit(); $$ = [ parseTree.makeEntry(PairComponentKey, { type: Arr, typeArgs: Bool, id: $1 }),
-                                                        parseTree.makeEntry(PairComponentValue, $3) ] }
-    | ref_arr_key COLON ref_arr_value COMMA?    { setArrFoundBit(); $$ = [ parseTree.makeEntry(PairComponentKey, { type: Arr, typeArgs: $1[0][0], id: $1[0][1], dim: $1[1] }),
-                                                        parseTree.makeEntry(PairComponentValue, $3) ] }
+    | str_arr_key COLON str_arr_value COMMA?    { 
+                                                    setArrFoundBit()
+                                                    $$ = [
+                                                        parseTree.makeEntry(
+                                                            PairComponentKey,
+                                                            {
+                                                                type: Arr,
+                                                                typeArgs: Str,
+                                                                id: $1,
+                                                                dim: dim
+                                                            }
+                                                        ),
+                                                        parseTree.makeEntry(PairComponentValue, $3)
+                                                    ] 
+                                                }
+    | num_arr_key COLON num_arr_value COMMA?    {
+                                                    setArrFoundBit()
+                                                    $$ = [
+                                                        parseTree.makeEntry(
+                                                            PairComponentKey,
+                                                            {
+                                                                type: Arr,
+                                                                typeArgs: Num,
+                                                                id: $1,
+                                                                dim: dim
+                                                            }
+                                                        ),
+                                                        parseTree.makeEntry(PairComponentValue, $3)
+                                                    ]
+                                                }
+    | bool_arr_key COLON bool_arr_value COMMA?  {
+                                                    setArrFoundBit()
+                                                    $$ = [
+                                                        parseTree.makeEntry(
+                                                            PairComponentKey,
+                                                            {
+                                                                type: Arr,
+                                                                typeArgs: Bool,
+                                                                id: $1,
+                                                                dim: dim
+                                                            }
+                                                        ),
+                                                        parseTree.makeEntry(PairComponentValue, $3)
+                                                    ]
+                                                }
+    | ref_arr_key COLON ref_arr_value COMMA?    {
+                                                    setArrFoundBit()
+                                                    $$ = [
+                                                            parseTree.makeEntry(
+                                                                PairComponentKey,
+                                                                {
+                                                                    type: Arr,
+                                                                    typeArgs: Word.Ref,
+                                                                    subType: $1[0][0],
+                                                                    id: $1[0][1],
+                                                                    dim: $1[1]
+                                                                }
+                                                            ),
+                                                        parseTree.makeEntry(PairComponentValue, $3)
+                                                    ]
+                                                    /* 
+                                                     * For reference key the dimensionality is not checked from the
+                                                     * parser, hence it's not stored in a local variable
+                                                     */
+                                                }
     | any_key COLON any_value COMMA?            { $$ = [ parseTree.makeEntry(PairComponentKey, { type: Any, id: $1 }),
                                                         parseTree.makeEntry(PairComponentValue, $3) ] }
     ;
@@ -317,7 +374,7 @@ num_value
     : IDENTITY                                  { $$ = ({ type: Fn,  value: $1 }) }
     | FAIL                                      { $$ = ({ type: Fn,  value: $1 }) }
     | intervals                                 { $$ = ({ type: Fn,  value: $1 }) }
-    | NUMERIC                                   { $$ = ({ type: Fn,  value: AbEq, args: [$1] }) }
+    | NUMERIC                                   { $$ = ({ type: Fn,  value: AbEq, args: [+$1] }) }
     | CTX_USER_FN                               { $$ = ({ type: UFn, value: $1 }) }
     ;
 
@@ -391,7 +448,7 @@ ref_value
     : IDENTITY                                  { $$ = ({ type: Fn,  value: $1 }) }
     | FAIL                                      { $$ = ({ type: Fn,  value: $1 }) }
     | CTX_USER_FN                               { $$ = ({ type: UFn, value: $1 }) }
-    | REFERENCE attr                            { $$ = ({ type: Ref, value: $2 })}
+    | REFERENCE attr                            { $$ = ({ type: Ref, value: $2 }) }
     ;
 
 ref_arr_value

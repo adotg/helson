@@ -122,7 +122,7 @@ case 9:
                                                         parseTree.makeEntry(PairComponentKey, { id: $$[$0-3] }),
                                                         parseTree.makeEntry(PairComponentValue, { 
                                                             type: Word.Fn,
-                                                            value: Word.Assign,
+                                                            value: Word.AbEq,
                                                             args: [$$[$0-1]]
                                                         })
                                                     ])
@@ -131,13 +131,25 @@ break;
 case 10: case 12:
 this.$ = parseTree.makeEntry(StructureBody, {}, $$[$0-2]);
 break;
-case 11: case 13:
+case 11:
 
                                                     this.$ = parseTree.makeEntry(PairDefinition, {}, [
                                                         parseTree.makeEntry(PairComponentKey, { id: $$[$0-3] }),
                                                         parseTree.makeEntry(PairComponentValue, {
                                                             type: Word.Fn,
-                                                            value: Word.Assign,
+                                                            value: Word.AbEq,
+                                                            args: [+$$[$0-1]]
+                                                        })
+                                                    ])
+                                                
+break;
+case 13:
+
+                                                    this.$ = parseTree.makeEntry(PairDefinition, {}, [
+                                                        parseTree.makeEntry(PairComponentKey, { id: $$[$0-3] }),
+                                                        parseTree.makeEntry(PairComponentValue, {
+                                                            type: Word.Fn,
+                                                            value: Word.AbEq,
                                                             args: [$$[$0-1]]
                                                         })
                                                     ])
@@ -151,7 +163,7 @@ case 15:
                                                         parseTree.makeEntry(PairComponentKey, { id: $$[$0-3] }),
                                                         parseTree.makeEntry(PairComponentValue, {
                                                             type: Word.Fn,
-                                                            value: Word.Assign,
+                                                            value: Word.AbEq,
                                                             args: match[1]
                                                         })
                                                     ])
@@ -190,20 +202,77 @@ case 24:
                                                         parseTree.makeEntry(PairComponentValue, $$[$0-1]) ] 
 break;
 case 25:
- setArrFoundBit(); this.$ = [ parseTree.makeEntry(PairComponentKey, { type: Arr, typeArgs: Str, id: $$[$0-3] }),
-                                                        parseTree.makeEntry(PairComponentValue, $$[$0-1]) ] 
+ 
+                                                    setArrFoundBit()
+                                                    this.$ = [
+                                                        parseTree.makeEntry(
+                                                            PairComponentKey,
+                                                            {
+                                                                type: Arr,
+                                                                typeArgs: Str,
+                                                                id: $$[$0-3],
+                                                                dim: dim
+                                                            }
+                                                        ),
+                                                        parseTree.makeEntry(PairComponentValue, $$[$0-1])
+                                                    ] 
+                                                
 break;
 case 26:
- setArrFoundBit(); this.$ = [ parseTree.makeEntry(PairComponentKey, { type: Arr, typeArgs: Num, id: $$[$0-3] }),
-                                                        parseTree.makeEntry(PairComponentValue, $$[$0-1]) ] 
+
+                                                    setArrFoundBit()
+                                                    this.$ = [
+                                                        parseTree.makeEntry(
+                                                            PairComponentKey,
+                                                            {
+                                                                type: Arr,
+                                                                typeArgs: Num,
+                                                                id: $$[$0-3],
+                                                                dim: dim
+                                                            }
+                                                        ),
+                                                        parseTree.makeEntry(PairComponentValue, $$[$0-1])
+                                                    ]
+                                                
 break;
 case 27:
- setArrFoundBit(); this.$ = [ parseTree.makeEntry(PairComponentKey, { type: Arr, typeArgs: Bool, id: $$[$0-3] }),
-                                                        parseTree.makeEntry(PairComponentValue, $$[$0-1]) ] 
+
+                                                    setArrFoundBit()
+                                                    this.$ = [
+                                                        parseTree.makeEntry(
+                                                            PairComponentKey,
+                                                            {
+                                                                type: Arr,
+                                                                typeArgs: Bool,
+                                                                id: $$[$0-3],
+                                                                dim: dim
+                                                            }
+                                                        ),
+                                                        parseTree.makeEntry(PairComponentValue, $$[$0-1])
+                                                    ]
+                                                
 break;
 case 28:
- setArrFoundBit(); this.$ = [ parseTree.makeEntry(PairComponentKey, { type: Arr, typeArgs: $$[$0-3][0][0], id: $$[$0-3][0][1], dim: $$[$0-3][1] }),
-                                                        parseTree.makeEntry(PairComponentValue, $$[$0-1]) ] 
+
+                                                    setArrFoundBit()
+                                                    this.$ = [
+                                                            parseTree.makeEntry(
+                                                                PairComponentKey,
+                                                                {
+                                                                    type: Arr,
+                                                                    typeArgs: Word.Ref,
+                                                                    subType: $$[$0-3][0][0],
+                                                                    id: $$[$0-3][0][1],
+                                                                    dim: $$[$0-3][1]
+                                                                }
+                                                            ),
+                                                        parseTree.makeEntry(PairComponentValue, $$[$0-1])
+                                                    ]
+                                                    /* 
+                                                     * For reference key the dimensionality is not checked from the
+                                                     * parser, hence it's not stored in a local variable
+                                                     */
+                                                
 break;
 case 29:
  this.$ = [ parseTree.makeEntry(PairComponentKey, { type: Any, id: $$[$0-3] }),
@@ -227,7 +296,7 @@ break;
 case 42: case 43: case 47: case 48: case 56: case 57: case 58: case 62: case 63: case 77: case 78: case 86: case 87: case 90: case 91: case 93: case 94: case 97: case 98:
  this.$ = ({ type: Fn,  value: $$[$0] }) 
 break;
-case 44: case 49: case 59: case 64: case 79:
+case 44: case 49: case 64: case 79:
  this.$ = ({ type: Fn,  value: AbEq, args: [$$[$0]] }) 
 break;
 case 45:
@@ -274,6 +343,9 @@ case 55:
                                                     rcgCount -= 1;
                                                 
 break;
+case 59:
+ this.$ = ({ type: Fn,  value: AbEq, args: [+$$[$0]] }) 
+break;
 case 61:
  this.$ = `${
                                                     $$[$0-4] === "(" ? "lo" : "lc"
@@ -297,7 +369,7 @@ case 84: case 85:
  collector && collector.push(this.$); 
 break;
 case 89:
- this.$ = ({ type: Ref, value: $$[$0] })
+ this.$ = ({ type: Ref, value: $$[$0] }) 
 break;
 case 95:
  this.$ = ({ type: Rec, value: $$[$0][1] }) 
