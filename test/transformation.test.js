@@ -8,7 +8,7 @@ function l(obj) {
 }
 
 describe("AST", () => {
-  it.skip("should transform simple level 1 object", () => {
+  it("should transform simple level 1 object", () => {
     const schema = `
       typdef Person {
         str "name": pass,
@@ -34,16 +34,49 @@ describe("AST", () => {
     expect(ast).to.deep.equal({
       [Word.Enum]: {
         Admins: {
-          Root: "root@mail.box",
-          Mod: "mod@mail.box",
-          A1: "akash@mail.box"
+          Root: {
+            typeProcessor: [Word.Enum, Word.Str, null],
+            keyId: "Root",
+            valueResolver: [
+              Word.Fn,
+              Word.AbEq,
+              ["root@mail.box"],
+              {
+                ns: 0
+              }
+            ]
+          },
+          Mod: {
+            typeProcessor: [Word.Enum, Word.Str, null],
+            keyId: "Mod",
+            valueResolver: [
+              Word.Fn,
+              Word.AbEq,
+              ["mod@mail.box"],
+              {
+                ns: 0
+              }
+            ]
+          },
+          A1: {
+            typeProcessor: [Word.Enum, Word.Str, null],
+            keyId: "A1",
+            valueResolver: [
+              "Fn",
+              "abEq",
+              ["akash@mail.box"],
+              {
+                ns: 0
+              }
+            ]
+          }
         }
       },
-      [Word.TypeDef]: {
+      typdef: {
         Person: {
           name: {
             preProcessor: ["optionality", false],
-            typeProcessor: [Word.Str, null],
+            typeProcessor: [Word.Str, null, null],
             keyId: "name",
             valueResolver: [
               Word.Fn,
@@ -56,7 +89,7 @@ describe("AST", () => {
           },
           age: {
             preProcessor: ["optionality", true],
-            typeProcessor: [Word.Num, null],
+            typeProcessor: [Word.Num, null, null],
             keyId: "age",
             valueResolver: [
               Word.Fn,
@@ -69,11 +102,11 @@ describe("AST", () => {
           }
         }
       },
-      olist: {
+      [Word.OList]: {
         Items: [
           {
             preProcessor: ["optionality", false],
-            typeProcessor: [Word.Str, null],
+            typeProcessor: [Word.Str, null, null],
             keyId: "name",
             valueResolver: [
               Word.Fn,
@@ -86,7 +119,7 @@ describe("AST", () => {
           },
           {
             preProcessor: ["optionality", false],
-            typeProcessor: [Word.Str, null],
+            typeProcessor: [Word.Str, null, null],
             keyId: "itemCode",
             valueResolver: [
               Word.Fn,
@@ -99,7 +132,7 @@ describe("AST", () => {
           },
           {
             preProcessor: ["optionality", false],
-            typeProcessor: [Word.Num, null],
+            typeProcessor: [Word.Num, null, null],
             keyId: "quantity",
             valueResolver: [
               Word.Fn,
@@ -115,7 +148,7 @@ describe("AST", () => {
     });
   });
 
-  it.skip("should transform simple object with arrays and obj", () => {
+  it("should transform simple object with arrays and obj", () => {
     const schema = `
       enum Facility num {
         "ClassM": 1,
@@ -138,18 +171,51 @@ describe("AST", () => {
     const pt = parser.parse(schema);
     const ast = transformer(pt);
     expect(ast).to.deep.equal({
-      enum: {
+      [Word.Enum]: {
         Facility: {
-          ClassM: 1,
-          ClassN: 2,
-          ClassO: 3
+          ClassM: {
+            typeProcessor: [Word.Enum, Word.Num, null],
+            keyId: "ClassM",
+            valueResolver: [
+              Word.Fn,
+              Word.AbEq,
+              [1],
+              {
+                ns: 0
+              }
+            ]
+          },
+          ClassN: {
+            typeProcessor: [Word.Enum, Word.Num, null],
+            keyId: "ClassN",
+            valueResolver: [
+              Word.Fn,
+              Word.AbEq,
+              [2],
+              {
+                ns: 0
+              }
+            ]
+          },
+          ClassO: {
+            typeProcessor: [Word.Enum, Word.Num, null],
+            keyId: "ClassO",
+            valueResolver: [
+              "Fn",
+              "abEq",
+              [3],
+              {
+                ns: 0
+              }
+            ]
+          }
         }
       },
-      typdef: {
+      [Word.TypeDef]: {
         Person: {
           name: {
             preProcessor: ["optionality", false],
-            typeProcessor: [Word.Str, null],
+            typeProcessor: [Word.Str, null, null],
             keyId: "name",
             valueResolver: [
               Word.Fn,
@@ -162,7 +228,7 @@ describe("AST", () => {
           },
           profile: {
             preProcessor: ["optionality", true],
-            typeProcessor: [Word.Arr, Word.Str],
+            typeProcessor: [Word.Arr, Word.Str, null],
             keyId: "profile",
             valueResolver: [
               Word.Fn,
@@ -177,13 +243,20 @@ describe("AST", () => {
             preProcessor: ["optionality", false],
             typeProcessor: [Word.Ref, "@2"],
             keyId: "cred",
-            valueResolver: [Word.Fn, Word.Identity, null, { ns: 0 }]
+            valueResolver: [
+              Word.Fn,
+              Word.Identity,
+              null,
+              {
+                ns: 0
+              }
+            ]
           }
         },
         "@2": {
           age: {
             preProcessor: ["optionality", false],
-            typeProcessor: [Word.Num, null],
+            typeProcessor: [Word.Num, null, null],
             keyId: "age",
             valueResolver: [
               Word.Fn,
@@ -196,7 +269,7 @@ describe("AST", () => {
           },
           ssn: {
             preProcessor: ["optionality", false],
-            typeProcessor: [Word.Str, null],
+            typeProcessor: [Word.Str, null, null],
             keyId: "ssn",
             valueResolver: [
               Word.UFn,
@@ -209,7 +282,7 @@ describe("AST", () => {
           },
           facilities: {
             preProcessor: ["optionality", true],
-            typeProcessor: [Word.Arr, "Facility"],
+            typeProcessor: [Word.Arr, Word.Ref, "Facility"],
             keyId: "facilities",
             valueResolver: [
               Word.Fn,
@@ -222,7 +295,7 @@ describe("AST", () => {
           },
           defaultFacility: {
             preProcessor: ["optionality", false],
-            typeProcessor: [Word.Ref, "Facility"],
+            typeProcessor: [Word.Enum, Word.Ref, "Facility", null],
             keyId: "defaultFacility",
             valueResolver: [
               Word.Ref,
