@@ -16,6 +16,8 @@
 
 [ ] For an enum the value has to be absolute, right now general allowed syntax for general objects are also parsed
 
+[ ] Right now OList supports optional key word as a preProcessor. For an OList optionality is cann't be handled.
+
 ## Note
 
 - Decimals will be in the form of 0.1234. The prefix zero is mandatory.
