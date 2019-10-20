@@ -212,7 +212,7 @@ describe("Parse Tree", () => {
                         nodeType: Word.PairComponentValue,
                         properties: {
                           type: Word.Fn,
-                          args: ["10.01"],
+                          args: [10.01],
                           value: Word.AbEq
                         },
                         children: []
@@ -505,7 +505,8 @@ describe("Parse Tree", () => {
                           properties: {
                             type: Word.Arr,
                             typeArgs: Word.Str,
-                            id: "spaceships"
+                            id: "spaceships",
+                            dim: 3
                           },
                           children: []
                         },
@@ -537,7 +538,8 @@ describe("Parse Tree", () => {
                           properties: {
                             type: Word.Arr,
                             typeArgs: Word.Str,
-                            id: "test"
+                            id: "test",
+                            dim: 1
                           },
                           children: []
                         },
@@ -563,7 +565,8 @@ describe("Parse Tree", () => {
                           properties: {
                             type: Word.Arr,
                             typeArgs: "Num",
-                            id: "values"
+                            id: "values",
+                            dim: 1
                           },
                           children: []
                         },
@@ -589,7 +592,8 @@ describe("Parse Tree", () => {
                           properties: {
                             type: Word.Arr,
                             typeArgs: Word.Bool,
-                            id: "flags"
+                            id: "flags",
+                            dim: 2
                           },
                           children: []
                         },
@@ -616,7 +620,8 @@ describe("Parse Tree", () => {
                           nodeType: Word.PairComponentKey,
                           properties: {
                             type: Word.Arr,
-                            typeArgs: "Power",
+                            typeArgs: Word.Ref,
+                            subType: "Power",
                             id: "power",
                             dim: 1
                           },
@@ -1253,7 +1258,8 @@ describe("Parse Tree", () => {
                                       properties: {
                                         type: Word.Arr,
                                         typeArgs: Word.Str,
-                                        id: "otherInf"
+                                        id: "otherInf",
+                                        dim: 1
                                       },
                                       children: []
                                     },
@@ -1407,7 +1413,7 @@ describe("Parse Tree", () => {
                           nodeType: Word.PairComponentValue,
                           properties: {
                             type: Word.Fn,
-                            value: Word.Assign,
+                            value: Word.AbEq,
                             args: ["mod@mail.box"]
                           },
                           children: []
@@ -1429,7 +1435,7 @@ describe("Parse Tree", () => {
                           nodeType: Word.PairComponentValue,
                           properties: {
                             type: Word.Fn,
-                            value: Word.Assign,
+                            value: Word.AbEq,
                             args: ["nimona@mail.box"]
                           },
                           children: []
@@ -1451,7 +1457,7 @@ describe("Parse Tree", () => {
                           nodeType: Word.PairComponentValue,
                           properties: {
                             type: Word.Fn,
-                            value: Word.Assign,
+                            value: Word.AbEq,
                             args: ["kidflash@mail.box"]
                           },
                           children: []
@@ -1796,8 +1802,9 @@ describe("Parse Tree", () => {
                         {
                           nodeType: Word.PairComponentKey,
                           properties: {
-                            type: "Arr",
-                            typeArgs: "Competition",
+                            type: Word.Arr,
+                            typeArgs: Word.Ref,
+                            subType: "Competition",
                             id: "competitionResult",
                             dim: 1
                           },
@@ -1850,7 +1857,7 @@ describe("Parse Tree", () => {
                           nodeType: Word.PairComponentValue,
                           properties: {
                             type: Word.Fn,
-                            value: Word.Assign,
+                            value: Word.AbEq,
                             args:
                               '["Deadpool", "Trash Talking", 10, [{ "code": 0, "name": "high jump", "pos": 1}, { "code": 1, "name": "high jump", "pos": 2}]]'
                           },
@@ -1873,7 +1880,7 @@ describe("Parse Tree", () => {
                           nodeType: Word.PairComponentValue,
                           properties: {
                             type: Word.Fn,
-                            value: Word.Assign,
+                            value: Word.AbEq,
                             args:
                               '["Flash", "Trash Talking", 8, [{ "code", 0, "name": "running", "pos": 1}]]'
                           },
@@ -1896,7 +1903,7 @@ describe("Parse Tree", () => {
                           nodeType: Word.PairComponentValue,
                           properties: {
                             type: Word.Fn,
-                            value: Word.Assign,
+                            value: Word.AbEq,
                             args:
                               '["Spiderman", "Friendly", 8, [{ "code", 0, "name": "long jump", "pos": 1}]]'
                           },
