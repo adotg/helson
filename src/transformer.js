@@ -1,6 +1,7 @@
 const walker = require("./walker");
 const Word = require("./parse-tree").Word;
 const context = require("./context");
+const { postTransformationMutator } = require("./verifier");
 
 const Indices = {
   Optionality: 0,
@@ -30,6 +31,22 @@ function getRecursiveObjectMountStub(id, recObject) {
   };
 }
 
+function container(seed) {
+  const resp = {};
+
+  resp.push = (key, value) => {
+    if (seed instanceof Array) {
+      seed.push(value);
+    } else {
+      seed[key] = value;
+    }
+  };
+
+  resp.serialize = () => seed;
+
+  return resp;
+}
+
 function transformer(pt /* parse tree */) {
   const ast = {
     [Word.Enum]: {},
@@ -52,114 +69,123 @@ function transformer(pt /* parse tree */) {
   let isOptional = null;
   let astMount = null;
 
-  walker(pt, {
-    [Word.StructureDefinition]: {
-      exit: () => {
-        structure.type = null;
-        structure.id = null;
-        structure.typeArgs = null;
-        structure.subType = null;
-        astMount = null;
-      }
-    },
-
-    [Word.StructureIdentifier]: {
-      enter: node => {
-        structure.type = node.properties.type;
-        structure.id = node.properties.id;
-        structure.typeArgs =
-          node.properties.typeArgs === undefined
-            ? null
-            : node.properties.typeArgs;
-        structure.subType =
-          node.properties.subType === undefined
-            ? null
-            : node.properties.subType;
-        astMount = ast[structure.type];
-      }
-    },
-
-    [Word.StructureBody]: {
-      enter: () => {
-        astMount[structure.id] = structureBody = {};
-      },
-
-      exit: () => {
-        structureBody = null;
-      }
-    },
-
-    [Word.PairDefinition]: {
-      enter: node => {
-        isOptional = node.properties.isOptional;
-        if (structure.type === Word.Enum) {
-          pairConfig = {};
-        } else {
-          pairConfig = {
-            preProcessor: ["optionality", isOptional]
-          };
+  walker(
+    pt,
+    {
+      [Word.StructureDefinition]: {
+        exit: () => {
+          structure.type = null;
+          structure.id = null;
+          structure.typeArgs = null;
+          structure.subType = null;
+          astMount = null;
         }
       },
-      exit: () => {
-        structureBody[pairConfig.keyId] = pairConfig;
-        pairConfig = null;
-        isOptional = null;
-      }
-    },
 
-    [Word.PairComponentKey]: {
-      enter: node => {
-        if (structure.type === Word.Enum) {
-          pairConfig.typeProcessor = [
-            structure.typeArgs,
-            structure.subType === undefined ? null : structure.subType
-          ];
-        } else {
-          pairConfig.typeProcessor = [
-            node.properties.type,
+      [Word.StructureIdentifier]: {
+        enter: node => {
+          structure.type = node.properties.type;
+          structure.id = node.properties.id;
+          structure.typeArgs =
             node.properties.typeArgs === undefined
               ? null
-              : node.properties.typeArgs
-          ];
+              : node.properties.typeArgs;
+          structure.subType =
+            node.properties.subType === undefined
+              ? null
+              : node.properties.subType;
+          astMount = ast[structure.type];
         }
-        pairConfig.keyId = node.properties.id;
+      },
+
+      [Word.StructureBody]: {
+        enter: () => {
+          structureBody = container(structure.type === Word.OList ? [] : {});
+        },
+
+        exit: () => {
+          astMount[structure.id] = structureBody.serialize();
+          structureBody = null;
+        }
+      },
+
+      [Word.PairDefinition]: {
+        enter: node => {
+          isOptional = node.properties.isOptional;
+          if (structure.type === Word.Enum) {
+            pairConfig = {};
+          } else {
+            pairConfig = {
+              preProcessor: ["optionality", isOptional]
+            };
+          }
+        },
+        exit: () => {
+          structureBody.push(pairConfig.keyId, pairConfig);
+          pairConfig = null;
+          isOptional = null;
+        }
+      },
+
+      [Word.PairComponentKey]: {
+        enter: node => {
+          if (structure.type === Word.Enum) {
+            pairConfig.typeProcessor = [
+              structure.type,
+              structure.typeArgs,
+              structure.subType === undefined ? null : structure.subType
+            ];
+          } else {
+            pairConfig.typeProcessor = [
+              node.properties.type,
+              node.properties.typeArgs === undefined
+                ? null
+                : node.properties.typeArgs,
+              node.properties.subType === undefined
+                ? null
+                : node.properties.subType
+            ];
+          }
+          pairConfig.keyId = node.properties.id;
+        }
+      },
+
+      [Word.PairComponentValue]: {
+        enter: (node, _, root) => {
+          if (node.properties.type === Word.Rec) {
+            let id = `@${root.children.length}`;
+            // For a recursive object entry append the object right below the root and set a reference with the current
+            // node
+            pairConfig.typeProcessor = [Word.Ref, id];
+            pairConfig.valueResolver = getRecursiveObjectValueStub();
+            // Attach the recursive object to root
+            root.children.push(
+              getRecursiveObjectMountStub(id, node.properties.value)
+            );
+          } else {
+            switch (node.properties.type) {
+              case Word.Fn:
+                ns = context.NS.System;
+                fn = node.properties.value;
+                expectation = true;
+                break;
+              case Word.UFn:
+                ns = context.NS.User;
+                fn = node.properties.value;
+                expectation = true;
+            }
+            pairConfig.valueResolver = [
+              node.properties.type,
+              node.properties.value,
+              node.properties.args === undefined ? null : node.properties.args,
+              { ns }
+            ];
+          }
+        }
       }
     },
-
-    [Word.PairComponentValue]: {
-      enter: (node, _, root) => {
-        if (node.properties.type === Word.Rec) {
-          let id = `@${root.children.length}`;
-          // For a recursive object entry append the object right below the root and set a reference with the current
-          // node
-          pairConfig.typeProcessor = [Word.Ref, id];
-          pairConfig.valueResolver = getRecursiveObjectValueStub();
-          // Attach the recursive object to root
-          root.children.push(
-            getRecursiveObjectMountStub(id, node.properties.value)
-          );
-        } else {
-          switch (node.properties.type) {
-            case Word.Fn:
-              ns = context.NS.System;
-              fn = node.properties.value;
-              expectation = true;
-              break;
-            case Word.UFn:
-              ns = context.NS.User;
-              fn = node.properties.value;
-              expectation = true;
-          }
-          pairConfig.valueResolver = [
-            node.properties.type,
-            node.properties.value,
-            node.properties.args === undefined ? null : node.properties.args,
-            { ns }
-          ];
-        }
-      }
-    }
-  });
+    { walkComplete: postTransformationMutator(ast, context) }
+  );
 
   return ast;
 }

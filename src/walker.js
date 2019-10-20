@@ -44,8 +44,11 @@ const walkNode = (node, parent, args) => {
   }
 };
 
-function walker(parseTree, visitor) {
+function walker(parseTree, visitor, hooks) {
   walkNode(parseTree, null, { visitor, root: parseTree });
+
+  hooks = hooks || {};
+  hooks.walkComplete && hooks.walkComplete();
 }
 
 module.exports = walker;
