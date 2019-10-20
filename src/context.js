@@ -153,6 +153,37 @@ const isNum = ({ value, key }, _, __, itr) => {
   return () => result;
 };
 
+const isBool = ({ value, key }, _, __, itr) => {
+  const result = typeof value === "boolean";
+  if (!result) {
+    itr.report(key, `Value of type number expected; received ${typeof value}`);
+  }
+
+  return () => result;
+};
+
+const assign = () => {
+  const result = {};
+
+  return ({ value, key }) => {
+    result[key] = value;
+    return result;
+  };
+};
+
+const abEq = ({ value }, args, __, itr) => {
+  const result = value === args[0];
+
+  if (!result) {
+    itr.report(
+      key,
+      `Values not equal; expected: ${args[0]}, received: ${value}`
+    );
+  }
+
+  return () => result;
+};
+
 const context = {};
 
 context.NS = {
@@ -169,7 +200,10 @@ context.def = {
     lcroRange,
     pass,
     isStr,
-    isNum
+    isNum,
+    isBool,
+    assign,
+    abEq
   },
   [context.NS.User]: {}
 };
