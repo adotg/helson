@@ -15,9 +15,11 @@ function getEnumInf(enumAST) {
   };
 }
 
-// TODO This function hosts lots of assumption, thereby reducing the dynamic behaviour of the verifier
-// For the the timebeing it works. For future for any scalability issue check if the resolve process of
-// enum could be done from parser (towards the top of the lib)
+// TODO This function hosts structrual assumption and implements a workaround to detect enum,
+// thereby reducing the dynamic behaviour of the verifier. For the the time being it works.
+// For future for any scalability issue check if the resolve process of
+// enum could be done from parser (towards the top of the lib) / or from any other place instead
+// of calling it from verification phrase
 function recursiveTypeResolve(item, ast) {
   let enumName;
   let enumInf;
@@ -28,8 +30,7 @@ function recursiveTypeResolve(item, ast) {
     item.typeProcessor = enumInf.typeProcessor.slice(1);
     vr = item.valueResolver;
     if (vr[0] === Word.Ref) {
-      // Link enum members valueResolver as the input value (match object's) value will be
-      // tested against
+      // Link enum member's valueResolver as the input value (match object's) value will be tested against
       item.valueResolver = ast[Word.Enum][enumName][vr[1]].valueResolver;
     }
   }
@@ -48,6 +49,7 @@ function itrFactory(ast, mount, matchObj) {
 
   let prefix;
 
+  // TODO not the best way of detecting array, but hey it's okay for the time being
   if (typeof mount === "string") {
     if (mount in ast[Word.TypeDef]) {
       prefix = Word.TypeDef;
@@ -65,9 +67,7 @@ function itrFactory(ast, mount, matchObj) {
   } else if (mount.astVal.typeProcessor[0] === Word.Arr) {
     prefix = Word.Arr;
   } else {
-    throw new Error(`
-      Unknown mount type 
-    `);
+    throw new Error(`Unknown mount type. You should not get this issue.`);
   }
 
   resp.subentry = () => prefix === Word.Enum || prefix === Word.Arr;
@@ -111,7 +111,6 @@ function itrFactory(ast, mount, matchObj) {
             let expectedArr;
 
             if (i === 0) {
-              // If the iteration is beginning, call the hooks and do preprocessing
               l.enter.forEach(fn => fn(astVal, store));
 
               if (!astVal.stackOfTypeProcessor) {
@@ -288,7 +287,6 @@ function postTransformationMutator(ast, context) {
     for (item in enums) {
       eachEnum = enums[item];
       enumInf = getEnumInf(eachEnum);
-      // fn = ctx[enumInf.fn]();
 
       if (enumInf.type === Word.Ref) {
         // For reference type, verification from transformation is required as the parser returns the value
