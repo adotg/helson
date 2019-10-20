@@ -116,11 +116,16 @@ function itrFactory(ast, mount, matchObj) {
               // If the iteration is beginning, call the hooks and do preprocessing
               l.enter.forEach(fn => fn(astVal, store));
 
-              astVal._typeProcessorOrig = astVal.typeProcessor;
+              if (!astVal.stackOfTypeProcessor) {
+                astVal.stackOfTypeProcessor = [];
+              }
+              astVal.stackOfTypeProcessor.push(astVal.typeProcessor);
+
               // Removes the first element `Arr` as iterator makes element to element type and equality checking
               astVal.typeProcessor = astVal.typeProcessor.slice(1);
               expectedArr = astVal.valueResolver[2];
               if (expectedArr instanceof Array) {
+                // TODO create stack of value resolver as well
                 astVal._valueResolverOrig = astVal.valueResolver;
                 astVal.valueResolver = astVal.valueResolver.slice(0);
                 astVal.valueResolver[2] = astVal.valueResolver[2][key];
@@ -130,6 +135,13 @@ function itrFactory(ast, mount, matchObj) {
             if (i === matchObj.length) {
               // The last most key in the object
               l.exit.forEach(fn => fn(astVal, store));
+              astVal.typeProcessor = astVal.stackOfTypeProcessor.splice(
+                astVal.stackOfTypeProcessor.length - 1,
+                1
+              )[0];
+              if (!astVal.stackOfTypeProcessor.length) {
+                delete astVal.stackOfTypeProcessor;
+              }
               isDone = true;
             } else {
               key = i++;
@@ -337,7 +349,6 @@ function postTransformationMutator(ast, context) {
 
 function verifier(ast, matchObj, config, context) {
   const sysContext = context.get(context.NS.System);
-  debugger;
 
   const finalStatus = (function rec(itrBase) {
     const optionalityStatusGetter = itrBase.subentry()
@@ -353,7 +364,6 @@ function verifier(ast, matchObj, config, context) {
     let localStatusCollection = [];
     while ((({ done, overflow, item } = itr.next()), !done)) {
       let nestedResp;
-      let seqResp;
 
       if (overflow) {
         continue;
@@ -390,7 +400,9 @@ function verifier(ast, matchObj, config, context) {
           break;
 
         case Word.Arr:
-          seqResp = rec(itrFactory(ast, item, item.value));
+          nestedResp = rec(itrFactory(ast, item, item.value));
+          typeStatusGetter = () => nestedResp[0];
+          itrBase.report(item.key, nestedResp[1]);
           break;
 
         case Word.Ref:

@@ -145,6 +145,17 @@ function transformer(pt /* parse tree */) {
                 ? null
                 : node.properties.subType
             ];
+            // For multidimensional array do
+            // Arr of Arr of Arr of ... Str
+            let dim;
+            if (
+              node.properties.type === Word.Arr &&
+              (dim = node.properties.dim) > 1
+            ) {
+              while (dim-- - 1) {
+                pairConfig.typeProcessor.unshift(Word.Arr);
+              }
+            }
           }
           pairConfig.keyId = node.properties.id;
         }
