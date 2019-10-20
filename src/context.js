@@ -156,7 +156,7 @@ const isNum = ({ value, key }, _, __, itr) => {
 const isBool = ({ value, key }, _, __, itr) => {
   const result = typeof value === "boolean";
   if (!result) {
-    itr.report(key, `Value of type number expected; received ${typeof value}`);
+    itr.report(key, `Value of type boolean expected; received ${typeof value}`);
   }
 
   return () => result;
