@@ -1,6 +1,43 @@
 const Word = require("./parse-tree").Word;
 
 const failFn = () => false;
+const passFn = () => true;
+
+function getEnumInf(enumAST) {
+  const keys = Object.keys(enumAST);
+  const sample = enumAST[keys[0]];
+  return {
+    type: sample.typeProcessor[1],
+    typeArgs: sample.typeProcessor[2],
+    typeProcessor: sample.typeProcessor,
+    fn: sample.valueResolver[1],
+    ns: sample.valueResolver[3].ns
+  };
+}
+
+// TODO This function hosts lots of assumption, thereby reducing the dynamic behaviour of the verifier
+// For the the timebeing it works. For future for any scalability issue check if the resolve process of
+// enum could be done from parser (towards the top of the lib)
+function recursiveTypeResolve(item, ast) {
+  let enumName;
+  let enumInf;
+  let vr;
+  if (item.typeProcessor[0] === Word.Enum) {
+    enumName = item.typeProcessor[2];
+    enumInf = getEnumInf(ast[Word.Enum][enumName]);
+    item._typeProcessorOrig = item.typeProcessor;
+    item.typeProcessor = enumInf.typeProcessor.slice(1);
+    vr = item.valueResolver;
+    if (vr[0] === Word.Ref) {
+      // Link enum members valueResolver as the input value (match object's) value will be
+      // tested against
+      item._valueResolverOrig = vr;
+      item.valueResolver = ast[Word.Enum][enumName][vr[1]].valueResolver;
+    }
+  }
+
+  return item;
+}
 
 function itrFactory(ast, mount, matchObj) {
   const resp = {};
@@ -10,6 +47,32 @@ function itrFactory(ast, mount, matchObj) {
     keyvisited: []
   }; // Listeners
   const reports = {};
+
+  let prefix;
+
+  if (typeof mount === "string") {
+    if (mount in ast[Word.TypeDef]) {
+      prefix = Word.TypeDef;
+    } else if (mount in ast[Word.OList]) {
+      prefix = Word.OList;
+    } else if (mount in ast[Word.Enum]) {
+      prefix = Word.Enum;
+    } else {
+      throw new Error(`
+        The type definition \`${mount}\` you wanted to use as a schema is not found.
+        It's case sensitive, please make sure the case matches with the definition.
+        Please make sure the spelling is correct.
+      `);
+    }
+  } else if (mount.astVal.typeProcessor[0] === Word.Arr) {
+    prefix = Word.Arr;
+  } else {
+    throw new Error(`
+      Unknown mount type 
+    `);
+  }
+
+  resp.subentry = () => prefix === Word.Enum || prefix === Word.Arr;
 
   resp.on = (phrase, fn) => {
     phrase = phrase.toLowerCase();
@@ -34,80 +97,269 @@ function itrFactory(ast, mount, matchObj) {
 
   resp.getCompleteReport = () => reports;
 
-  resp.inst = () => {
-    const resp2 = {};
-    const store = {};
-    let matchObjKeys = null;
-    let i = 0;
+  resp.inst =
+    prefix === Word.Arr
+      ? () => {
+          const resp2 = {};
+          const store = {};
+          let i = 0;
 
-    if (!(mount in ast)) {
-      // report to err
-    }
+          resp2.next = () => {
+            let isDone = false;
+            let overflow = false;
+            let key;
+            let value;
+            let astVal = mount.astVal;
+            let expectedArr;
 
-    const mountedAST = ast[mount];
-    resp2.next = () => {
-      let isDone = false;
-      // Overflow is the situation where the match (input) object has a key but the schema does not have the key
-      let overflow = false;
-      let key;
-      if (i == 0) {
-        // If the iteration is beginning, call the hooks and do preprocessing
-        l.enter.forEach(fn => fn(mountedAST, store));
+            if (i === 0) {
+              // If the iteration is beginning, call the hooks and do preprocessing
+              l.enter.forEach(fn => fn(astVal, store));
 
-        // Save the iterable keys
-        matchObjKeys = Object.keys(matchObj);
-      }
+              astVal._typeProcessorOrig = astVal.typeProcessor;
+              // Removes the first element `Arr` as iterator makes element to element type and equality checking
+              astVal.typeProcessor = astVal.typeProcessor.slice(1);
+              expectedArr = astVal.valueResolver[2];
+              if (expectedArr instanceof Array) {
+                astVal._valueResolverOrig = astVal.valueResolver;
+                astVal.valueResolver = astVal.valueResolver.slice(0);
+                astVal.valueResolver[2] = astVal.valueResolver[2][key];
+              }
+            }
 
-      if (i === matchObjKeys.length) {
-        // The last most key in the object
-        l.exit.forEach(fn => fn(mountedAST, store));
-        isDone = true;
-      } else {
-        key = matchObjKeys[i++];
-        if (!(key in mountedAST)) {
-          overflow = true;
+            if (i === matchObj.length) {
+              // The last most key in the object
+              l.exit.forEach(fn => fn(astVal, store));
+              isDone = true;
+            } else {
+              key = i++;
+              value = matchObj[key];
+              if (
+                expectedArr instanceof Array &&
+                key >= expectedArr[0].length
+              ) {
+                overflow = true;
+              }
+            }
+
+            return {
+              done: isDone,
+              overflow,
+              item: {
+                value,
+                astVal,
+                key,
+                store
+              }
+            };
+          };
+
+          return resp2;
         }
-        l.keyvisited.forEach(fn =>
-          fn(mountedAST[key] /* undefined for an overflow */, key, store)
-        );
-      }
+      : () => {
+          const resp2 = {};
+          const store = {};
+          let matchObjKeys = null;
+          let i = 0;
 
-      return {
-        done: isDone,
-        overflow,
-        item: {
-          value: matchObj[key],
-          astVal: mountedAST[key],
-          key,
-          store
-        }
-      };
-    };
+          const mountedAST = ast[prefix][mount];
+          resp2.next = () => {
+            let isDone = false;
+            // Overflow is the situation where the match (input) object has a key but the schema does not have the key
+            let overflow = false;
+            let key;
 
-    return resp2;
-  };
+            switch (prefix) {
+              case Word.OList:
+                if (i === 0) {
+                  // If the iteration is beginning, call the hooks and do preprocessing
+                  l.enter.forEach(fn => fn(mountedAST, store));
+                }
+
+                if (i === matchObj.length) {
+                  // The last most key in the object
+                  l.exit.forEach(fn => fn(mountedAST, store));
+                  isDone = true;
+                } else {
+                  key = i++; /* index for an array */
+
+                  if (key >= mountedAST.length) {
+                    overflow = true;
+                  }
+
+                  l.keyvisited.forEach(fn =>
+                    fn(
+                      mountedAST[key] /* undefined for an overflow */,
+                      key,
+                      store
+                    )
+                  );
+                }
+                break;
+              case Word.TypeDef:
+                if (i == 0) {
+                  // If the iteration is beginning, call the hooks and do preprocessing
+                  l.enter.forEach(fn => fn(mountedAST, store));
+
+                  // Save the iterable keys
+                  matchObjKeys = Object.keys(matchObj);
+                }
+
+                if (i === matchObjKeys.length) {
+                  // The last most key in the object
+                  l.exit.forEach(fn => fn(mountedAST, store));
+                  isDone = true;
+                } else {
+                  key = matchObjKeys[i++];
+                  if (!(key in mountedAST)) {
+                    overflow = true;
+                  }
+                  l.keyvisited.forEach(fn =>
+                    fn(
+                      mountedAST[key] /* undefined for an overflow */,
+                      key,
+                      store
+                    )
+                  );
+                }
+                break;
+              default:
+                throw new Error(`
+                Can't use \`${prefix}\` type as schema.
+                Only type definition of an ordered list and object can be used as a schema. 
+              `);
+            }
+
+            return {
+              done: isDone,
+              overflow,
+              item: {
+                value: matchObj[key],
+                astVal: mountedAST[key],
+                key,
+                store
+              }
+            };
+          };
+
+          return resp2;
+        };
 
   return resp;
 }
 
+function postTransformationMutator(ast, context) {
+  /* verifier + mutator */
+  return () => {
+    const enums = ast[Word.Enum];
+    let item;
+    let eachDefs;
+    let valResolver;
+    let eachEnum;
+    let enumInf;
+
+    [Word.TypeDef, Word.OList].forEach(defs => {
+      for (item in ast[defs]) {
+        if (!ast[defs].hasOwnProperty(item)) {
+          continue;
+        }
+        let key;
+        eachDefs = ast[defs][item];
+        for (key in eachDefs) {
+          if (eachDefs[key].typeProcessor[0] === Word.Ref) {
+            if (eachDefs[key].typeProcessor[1] in ast[Word.Enum]) {
+              eachDefs[key].typeProcessor.unshift(Word.Enum);
+            }
+          }
+        }
+      }
+    });
+
+    for (item in enums) {
+      eachEnum = enums[item];
+      enumInf = getEnumInf(eachEnum);
+      // fn = ctx[enumInf.fn]();
+
+      if (enumInf.type === Word.Ref) {
+        // For reference type, verification from transformation is required as the parser returns the value
+        // as is from the tokenizer
+        let key;
+        let proxyValue;
+        for (key in eachEnum) {
+          valResolver = eachEnum[key].valueResolver;
+          try {
+            proxyValue = JSON.parse(valResolver[2]);
+          } catch (e) {
+            throw new Error(`
+              For key \`${key}\` in enum definition \`${item}\`:
+              Value can not be parsed to form a JavaScript object.
+              Value should be readable by \`JSON.parse\`.
+              Original error thrown by \`JSON.parse\`
+              ${e}
+            `);
+          }
+
+          const status = verifier(
+            ast,
+            proxyValue,
+            { mount: enumInf.typeArgs },
+            context
+          );
+          if (!status[0]) {
+            // If enum definition itself does not comply the schema of the referece type
+            throw new Error(`
+              For key \`${key}\` in enum definition \`${item}\`:
+              Value does not comply to the type definition of \`${
+                enumInf.typeArgs
+              }\`.
+              Mismatch details:
+              ${JSON.stringify(status[1], null, 2)}
+            `);
+          }
+        }
+      } else {
+        // For other primitive types the parser checks the type before constructing the parse tree, hence
+        // explicit verification is not required
+        // let key;
+        // let collectedPartialObj;
+        // for (key in eachEnum) {
+        //   valResolver = eachEnum[key].valueResolver;
+        //   collectedPartialObj = fn({
+        //     value: valResolver[2][0],
+        //     key
+        //   });
+        // }
+        // enums[item] = collectedPartialObj;
+      }
+    }
+  };
+}
+
 function verifier(ast, matchObj, config, context) {
   const sysContext = context.get(context.NS.System);
+  debugger;
 
   const finalStatus = (function rec(itrBase) {
-    const optionalityStatusGetter = sysContext.isOptional(itrBase);
+    const optionalityStatusGetter = itrBase.subentry()
+      ? passFn
+      : sysContext.isOptional(itrBase);
     let typeStatusGetter = failFn;
     let valueStatusGetter = failFn;
 
     const itr = itrBase.inst();
-    let done, item, fnSig;
+    let done;
+    let item;
+    let fnSig;
     let localStatusCollection = [];
     while ((({ done, overflow, item } = itr.next()), !done)) {
       let nestedResp;
+      let seqResp;
 
       if (overflow) {
         continue;
       }
 
+      recursiveTypeResolve(item.astVal, ast);
       // Type checking
       switch (item.astVal.typeProcessor[0]) {
         case Word.Str:
@@ -137,11 +389,15 @@ function verifier(ast, matchObj, config, context) {
           );
           break;
 
+        case Word.Arr:
+          seqResp = rec(itrFactory(ast, item, item.value));
+          break;
+
         case Word.Ref:
           nestedResp = rec(
-            itrFactory(ast, item.astVal.typeProcessor[1], matchObj[item.key])
+            itrFactory(ast, item.astVal.typeProcessor[1], item.value)
           );
-          // TODO right now iterators are not nested, only reports are nested. Not sure if this is the corrent
+          // TODO right now iterators are not nested, only reports are nested. Not sure if this is the correct
           // way of handling nested object reporting
           typeStatusGetter = () => nestedResp[0];
           itrBase.report(item.key, nestedResp[1]);
@@ -153,24 +409,15 @@ function verifier(ast, matchObj, config, context) {
       // Value checking
       switch (item.astVal.valueResolver[0]) {
         case Word.Fn:
-        case Word.UFn:
+        case Word.UFn: // TODO user context is not taken care of
           fnSig = item.astVal.valueResolver[1].split(",");
           valueStatusGetter = sysContext[fnSig[0]](
             item,
-            fnSig.slice(1),
+            [...fnSig.slice(1), ...(item.astVal.valueResolver[2] || [])],
             {
               matchObj,
               ast
             },
-            itrBase
-          );
-          break;
-
-        case Word.Abs:
-          valueStatusGetter = sysContext.equal(
-            item,
-            [item.astVal],
-            { matchObj, ast },
             itrBase
           );
           break;
@@ -191,4 +438,4 @@ function verifier(ast, matchObj, config, context) {
   return finalStatus;
 }
 
-module.exports = verifier;
+module.exports = { verifier, postTransformationMutator };
