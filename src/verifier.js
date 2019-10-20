@@ -25,13 +25,11 @@ function recursiveTypeResolve(item, ast) {
   if (item.typeProcessor[0] === Word.Enum) {
     enumName = item.typeProcessor[2];
     enumInf = getEnumInf(ast[Word.Enum][enumName]);
-    item._typeProcessorOrig = item.typeProcessor;
     item.typeProcessor = enumInf.typeProcessor.slice(1);
     vr = item.valueResolver;
     if (vr[0] === Word.Ref) {
       // Link enum members valueResolver as the input value (match object's) value will be
       // tested against
-      item._valueResolverOrig = vr;
       item.valueResolver = ast[Word.Enum][enumName][vr[1]].valueResolver;
     }
   }
