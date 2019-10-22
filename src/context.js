@@ -5,6 +5,8 @@
  * Whenever isRef is called, it recursively checks linked node
  */
 
+const Err = require("./err");
+
 const KeyPresence = {
   Mandatory: 1,
   Optional: 2,
@@ -52,13 +54,10 @@ const isOptional = itr => {
       if (iterableKeys[key] === KeyPresence.Mandatory) {
         // All mandatory non optional key needs to be visited, if even one mandatory key is not visited report error
         status = false;
-        itr.report(
-          key,
-          "Non optional Key present in schema but not in input object"
-        );
+        itr.report(key, Err.KeyInSchemaNotInObj.msg());
       } else if (iterableKeys[key] === KeyPresence.Overflow) {
         status = false;
-        itr.report(key, "Key present in input object but not in schema");
+        itr.report(key, Err.KeyInObjNotInSchema.msg());
       }
     }
   });
@@ -93,7 +92,7 @@ const lcrcRange = ({ value, key }, args, _, itr) => {
   result = value >= args[0] && value <= args[1];
 
   if (!result) {
-    itr.report(key, "Value outside range");
+    itr.report(key, Err.ValueOutSideRange.msg());
   }
 
   return () => result;
@@ -105,7 +104,7 @@ const lorcRange = ({ value, key }, args, _, itr) => {
   args = _rangeNormalizer(args);
   result = value > args[0] && value <= args[1];
   if (!result) {
-    itr.report(key, "Value outside range");
+    itr.report(key, Err.ValueOutSideRange.msg());
   }
 
   return () => result;
@@ -117,7 +116,7 @@ const loroRange = ({ value, key }, args, _, itr) => {
   args = _rangeNormalizer(args);
   result = value > args[0] && value < args[1];
   if (!result) {
-    itr.report(key, "Value outside range");
+    itr.report(key, Err.ValueOutSideRange.msg());
   }
 
   return () => result;
@@ -129,7 +128,7 @@ const lcroRange = ({ value, key }, args, _, itr) => {
   args = _rangeNormalizer(args);
   result = value >= args[0] && value < args[1];
   if (!result) {
-    itr.report(key, "Value outside range");
+    itr.report(key, Err.ValueOutSideRange.msg());
   }
 
   return () => result;
@@ -138,7 +137,7 @@ const lcroRange = ({ value, key }, args, _, itr) => {
 const isStr = ({ value, key }, _, __, itr) => {
   const result = typeof value === "string";
   if (!result) {
-    itr.report(key, `Value of type string expected; received ${typeof value}`);
+    itr.report(key, Err.ValueMismatch.msg("string", typeof value));
   }
 
   return () => result;
@@ -147,7 +146,7 @@ const isStr = ({ value, key }, _, __, itr) => {
 const isNum = ({ value, key }, _, __, itr) => {
   const result = typeof value === "number";
   if (!result) {
-    itr.report(key, `Value of type number expected; received ${typeof value}`);
+    itr.report(key, Err.ValueMismatch.msg("number", typeof value));
   }
 
   return () => result;
@@ -156,60 +155,66 @@ const isNum = ({ value, key }, _, __, itr) => {
 const isBool = ({ value, key }, _, __, itr) => {
   const result = typeof value === "boolean";
   if (!result) {
-    itr.report(key, `Value of type boolean expected; received ${typeof value}`);
+    itr.report(key, Err.ValueMismatch.msg("number", typeof value));
   }
 
   return () => result;
 };
 
-const assign = () => {
-  const result = {};
-
-  return ({ value, key }) => {
-    result[key] = value;
-    return result;
-  };
-};
-
-const abEq = ({ value }, args, __, itr) => {
+const abEq = ({ value, key }, args, __, itr) => {
   const result = value === args[0];
 
   if (!result) {
-    itr.report(
-      key,
-      `Values not equal; expected: ${args[0]}, received: ${value}`
-    );
+    itr.report(key, Err.ValueMismatch.msg(args[0], value));
   }
 
   return () => result;
 };
 
-const context = {};
+function createContext() {
+  const context = {};
 
-context.NS = {
-  System: 0,
-  User: 1
-};
+  context.NS = {
+    System: 0,
+    User: 1
+  };
 
-context.def = {
-  [context.NS.System]: {
-    isOptional,
-    lcrcRange,
-    lorcRange,
-    loroRange,
-    lcroRange,
-    pass,
-    isStr,
-    isNum,
-    isBool,
-    assign,
-    abEq
-  },
-  [context.NS.User]: {}
-};
+  context.def = {
+    [context.NS.System]: {
+      isOptional,
+      lcrcRange,
+      lorcRange,
+      loroRange,
+      lcroRange,
+      pass,
+      isStr,
+      isNum,
+      isBool,
+      abEq
+    },
+    [context.NS.User]: {},
+    _local: {}
+  };
 
-context.get = ns => context.def[ns];
+  context.get = ns => context.def[ns];
 
-context.set = userConfig => (context.def[context.NS.User] = userConfig);
+  context.set = userCtx => {
+    if (userCtx === null) {
+      context.def[context.NS.User] = {};
+    } else {
+      context.def[context.NS.User] = userCtx;
+    }
+  };
 
-module.exports = context;
+  context.setLocal = localCtx => {
+    if (localCtx === null) {
+      context.def._local = {};
+    } else {
+      context.def._local = localCtx;
+    }
+  };
+
+  return context;
+}
+
+module.exports = { createContext };
