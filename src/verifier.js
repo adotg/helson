@@ -326,7 +326,7 @@ function postTransformationMutator(ast, context) {
             `);
           } else {
             // Save the hash of the object
-            iterables[hashOfObj(valResolver[2])] = 1;
+            iterables[hashOfObj(proxyValue)] = 1;
           }
         }
       } else {

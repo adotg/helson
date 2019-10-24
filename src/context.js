@@ -7,6 +7,7 @@
 
 const Err = require("./err");
 const { Word } = require("./parse-tree");
+const { isArray, isSimpleObj, hashOfObj } = require("./utils");
 
 const KeyPresence = {
   Mandatory: 1,
@@ -175,6 +176,12 @@ const abEq = ({ value, key }, args, __, itr) => {
 const enumLookup = ({ value, key }, args, { ast }, itr) => {
   let result = false;
   const enumName = args[0];
+
+  // TODO this convertion of hash should not be presents inside validity checker function. The iterator (or ther top
+  // level component) should hash compound object and push it down. However, here we are because of time
+  if (isArray(value) || isSimpleObj(value)) {
+    value = hashOfObj(value);
+  }
 
   if (
     enumName in ast[Word.EnumIterables] &&
