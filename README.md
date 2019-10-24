@@ -18,6 +18,8 @@
 
 [ ] Right now OList supports optional key word as a preProcessor. For an OList optionality is cann't be handled.
 
+[ ] Throw proper error during tokenizing / parsing / transformation phrase
+
 ## Note
 
 - Decimals will be in the form of 0.1234. The prefix zero is mandatory.
