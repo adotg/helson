@@ -8,7 +8,7 @@ function l(obj) {
 }
 
 describe("AST", () => {
-  it.skip("should transform simple level 1 object", () => {
+  it("should transform simple level 1 object", () => {
     const schema = `
       typdef Person {
         str "name": pass,
@@ -32,6 +32,13 @@ describe("AST", () => {
     const ast = transformer(pt);
 
     expect(ast).to.deep.equal({
+      [Word.EnumIterables]: {
+        Admins: {
+          "akash@mail.box": 1,
+          "mod@mail.box": 1,
+          "root@mail.box": 1
+        }
+      },
       [Word.Enum]: {
         Admins: {
           Root: {
@@ -148,7 +155,7 @@ describe("AST", () => {
     });
   });
 
-  it.skip("should transform simple object with arrays and obj", () => {
+  it("should transform simple object with arrays and obj", () => {
     const schema = `
       enum Facility num {
         "ClassM": 1,
@@ -171,6 +178,13 @@ describe("AST", () => {
     const pt = parser.parse(schema);
     const ast = transformer(pt);
     expect(ast).to.deep.equal({
+      [Word.EnumIterables]: {
+        Facility: {
+          "1": 1,
+          "2": 1,
+          "3": 1
+        }
+      },
       [Word.Enum]: {
         Facility: {
           ClassM: {
@@ -357,7 +371,7 @@ describe("AST", () => {
     expect(ast).to.deep.equal({
       [Word.EnumIterables]: {
         ClassicResponse: {
-          "-1184297654.7": 1
+          "747778066.5": 1
         },
         HttpErrorCode: {
           200: 1,

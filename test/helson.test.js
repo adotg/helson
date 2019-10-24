@@ -245,4 +245,67 @@ describe("Helson", () => {
       }
     ]);
   });
+
+  it("should match with an object having value decided by complex enum when a correct value is passed", () => {
+    const schema = `
+      enum HttpErrorCode num {
+        "InternalServerError": 500,
+        "ResourceNotFound": 404,
+        "Auth": 403
+      }
+
+      enum HttpOkCode num {
+        "AllOk": 200
+      }
+
+      typdef Data {
+        str "userId": pass,
+        optnl bool "isLoggedIn": pass,
+      }
+
+      enum ClassicResponse \`ErrResponseFormat {
+        "Simple": ([500, { "items": []}]),
+        "Verbose": ([500, { "items": [] }, { "code": 1, "msg": "The third-party API didn't respond before timeout." }])
+      }
+
+      typdef ErrResponseFormat [
+        \`HttpErrorCode "code": pass,
+        obj "data": {
+          []\`Data "items": pass
+        },
+        optnl obj "err": {
+          num "code": pass,
+          str "msg": pass,
+        }
+      ]
+
+      typdef SuccessResponseFormat [
+        \`HttpErrorCode "code": \`"AllOK",
+        obj "data": {
+          []\`Data "items": pass
+        }
+      ]
+
+      typdef ErrResp {
+        \`ClassicResponse "resp": pass,
+      }
+    `;
+
+    debugger;
+    const resp = helson(schema).match(
+      {
+        resp: [
+          500,
+          { items: [] },
+          {
+            code: 1,
+            msg: "The third-party API didn't respond before timeout."
+          }
+        ]
+      },
+      "ErrResp"
+    );
+
+    expect(resp).to.deep.equal([true, {}]);
+  });
 });
