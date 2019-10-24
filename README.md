@@ -22,3 +22,4 @@
 
 - Decimals will be in the form of 0.1234. The prefix zero is mandatory.
 - The name of the types always start with a capital letter
+- The value of a complex enum should go in one line other wise the tokenizer messes up
