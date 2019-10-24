@@ -94,10 +94,10 @@ function itrFactory(ast, mount, matchObj) {
           resp2.next = () => {
             let isDone = false;
             let overflow = false;
-            let key;
             let value;
             let astVal = mount.astVal;
             let expectedArr;
+            const key = i;
 
             if (i === 0) {
               l.enter.forEach(fn => fn(astVal, store));
@@ -130,7 +130,7 @@ function itrFactory(ast, mount, matchObj) {
               }
               isDone = true;
             } else {
-              key = i++;
+              i++;
               value = matchObj[key];
               if (
                 expectedArr instanceof Array &&
