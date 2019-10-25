@@ -13,6 +13,7 @@ function recursiveTypeResolve(item, ast) {
   let enumName;
   let enumInf;
   let vr;
+
   if (item.typeProcessor[0] === Word.Enum) {
     enumName = item.typeProcessor[2];
     enumInf = getEnumInf(ast[Word.Enum][enumName]);
@@ -73,13 +74,18 @@ function itrFactory(ast, mount, matchObj) {
 
   // TODO temporary. Collect all the keys in error reporter
   resp.report = (key, msg) => {
-    if (typeof msg === "string") {
-      reports[key] = reports[key] || [];
-      reports[key].push(msg);
-    } else if (Object.keys(msg).length) {
-      // For nested object, it's mounted directly on the key
-      reports[key] = msg;
+    // TODO this is a brute force way of gathering report. Currently, probably works, but this should ideally have an
+    // semantics to compose report
+    if (typeof msg === "string" && !msg.trim()) {
+      return;
+    } else if (msg instanceof Array && !msg.length) {
+      return;
+    } else if (!Object.keys(msg).length) {
+      return;
     }
+
+    reports[key] = reports[key] || [];
+    reports[key].push(msg);
   };
 
   resp.getCompleteReport = () => reports;
@@ -89,33 +95,39 @@ function itrFactory(ast, mount, matchObj) {
       ? () => {
           const resp2 = {};
           const store = {};
+          const dim = mount.astVal.typeProcessor.filter(
+            type => type === Word.Arr
+          ).length;
+          let currentDim = 0;
           let i = 0;
 
           resp2.next = () => {
+            const key = i;
             let isDone = false;
             let overflow = false;
             let value;
             let astVal = mount.astVal;
             let expectedArr;
-            const key = i;
 
             if (i === 0) {
+              currentDim++;
               l.enter.forEach(fn => fn(astVal, store));
 
               if (!astVal.stackOfTypeProcessor) {
                 astVal.stackOfTypeProcessor = [];
               }
+
+              if (!astVal.stackOfValueResolver) {
+                astVal.stackOfValueResolver = [];
+              }
               astVal.stackOfTypeProcessor.push(astVal.typeProcessor);
+              // Create a new version of the resolver before saving, as the resolver might get mutated based on  the
+              // type
+              astVal.stackOfValueResolver.push(astVal.valueResolver);
 
               // Removes the first element `Arr` as iterator makes element to element type and equality checking
               astVal.typeProcessor = astVal.typeProcessor.slice(1);
-              expectedArr = astVal.valueResolver[2];
-              if (expectedArr instanceof Array) {
-                // TODO create stack of value resolver as well
-                astVal._valueResolverOrig = astVal.valueResolver;
-                astVal.valueResolver = astVal.valueResolver.slice(0);
-                astVal.valueResolver[2] = astVal.valueResolver[2][key];
-              }
+              astVal.valueResolver = astVal.valueResolver.slice(0);
             }
 
             if (i === matchObj.length) {
@@ -125,18 +137,32 @@ function itrFactory(ast, mount, matchObj) {
                 astVal.stackOfTypeProcessor.length - 1,
                 1
               )[0];
+              astVal.valueResolver = astVal.stackOfValueResolver.splice(
+                astVal.stackOfValueResolver.length - 1,
+                1
+              )[0];
               if (!astVal.stackOfTypeProcessor.length) {
                 delete astVal.stackOfTypeProcessor;
+              }
+              if (!astVal.stackOfValueResolver.length) {
+                delete astVal.stackOfValueResolver;
               }
               isDone = true;
             } else {
               i++;
               value = matchObj[key];
-              if (
-                expectedArr instanceof Array &&
-                key >= expectedArr[0].length
-              ) {
-                overflow = true;
+              expectedArr =
+                astVal.stackOfValueResolver[
+                  astVal.stackOfValueResolver.length - 1
+                ][2];
+              if (expectedArr instanceof Array) {
+                if (key >= expectedArr[0].length) {
+                  overflow = true;
+                }
+
+                if (astVal.typeProcessor[0] !== Word.Arr) {
+                  astVal.valueResolver[2] = [expectedArr[0][key]];
+                }
               }
             }
 
@@ -144,6 +170,8 @@ function itrFactory(ast, mount, matchObj) {
               done: isDone,
               overflow,
               item: {
+                dim,
+                currentDim,
                 value,
                 astVal,
                 key,
