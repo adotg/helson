@@ -25,6 +25,7 @@ Arr = Word.Arr
 Any = Word.Any
 Fn = Word.Fn
 AbEq = Word.AbEq
+ArrAbEq = Word.ArrAbEq
 UFn = Word.UFn
 Rec = Word.Rec
 TypeDef = Word.TypeDef
@@ -323,9 +324,8 @@ str_value
 str_arr_value
     : IDENTITY                                  { $$ = ({ type: Fn,  value: $1 }) }
     | FAIL                                      { $$ = ({ type: Fn,  value: $1 }) }
-    | str_arr_body_valid                        { $$ = ({ type: Fn,  value: AbEq, args: [$1] }) }
-    | (UNORDERED | CTX_USER_FN) str_arr_body_valid
-                                                { $$ = ({ type: Fn,  value: $1, args: [$2] }) }
+    | str_arr_body_valid                        { $$ = ({ type: Fn,  value: ArrAbEq, args: [$1] }) }
+    | CTX_USER_FN                               { $$ = ({ type: Fn,  value: $1 }) }
     ;
 
 str_arr_body_valid
@@ -390,9 +390,8 @@ intervals
 num_arr_value
     : IDENTITY                                  { $$ = ({ type: Fn,  value: $1 }) }
     | FAIL                                      { $$ = ({ type: Fn,  value: $1 }) }
-    | num_arr_body_valid                        { $$ = ({ type: Fn,  value: AbEq, args: [$1] }) }
-    | (UNORDERED | CTX_USER_FN) num_arr_body_valid
-                                                { $$ = ({ type: Fn,  value: $1, args: [$2] }) }
+    | num_arr_body_valid                        { $$ = ({ type: Fn,  value: ArrAbEq, args: [$1] }) }
+    | CTX_USER_FN                               { $$ = ({ type: Fn,  value: $1 }) }
     ;
 
 num_arr_body_valid
@@ -423,9 +422,8 @@ bool_value
 bool_arr_value
     : IDENTITY                                  { $$ = ({ type: Fn,  value: $1 }) }
     | FAIL                                      { $$ = ({ type: Fn,  value: $1 }) }
-    | bool_arr_body_valid                       { $$ = ({ type: Fn,  value: AbEq, args: [$1] }) }
-    | (UNORDERED | CTX_USER_FN) bol_arr_body_valid
-                                                { $$ = ({ type: Fn,  value: $1, args: [$2] }) }
+    | bool_arr_body_valid                       { $$ = ({ type: Fn,  value: ArrAbEq, args: [$1] }) }
+    | CTX_USER_FN                               { $$ = ({ type: UFn,  value: $1 }) }
     ;
 
 bool_arr_body_valid
