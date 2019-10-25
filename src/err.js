@@ -16,5 +16,9 @@ module.exports = {
   },
   ValueNotPresent: {
     msg: (val, enumName) => `Value ${val} is not present in enum ${enumName}`
+  },
+  ArrayMembersDifferent: {
+    msg: (expected, received) =>
+      `Different array length in comparison; expected length: ${expected}, received length: ${received}`
   }
 };
