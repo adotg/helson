@@ -514,7 +514,7 @@ describe("Parse Tree", () => {
                           nodeType: Word.PairComponentValue,
                           properties: {
                             type: Word.Fn,
-                            value: Word.AbEq,
+                            value: Word.ArrAbEq,
                             args: [
                               [
                                 [["this", "is"], ["really"], ["super"]],
@@ -547,7 +547,7 @@ describe("Parse Tree", () => {
                           nodeType: Word.PairComponentValue,
                           properties: {
                             type: Word.Fn,
-                            value: Word.AbEq,
+                            value: Word.ArrAbEq,
                             args: [["yooo", "yaa"]]
                           },
                           children: []
@@ -574,7 +574,7 @@ describe("Parse Tree", () => {
                           nodeType: Word.PairComponentValue,
                           properties: {
                             type: Word.Fn,
-                            value: Word.AbEq,
+                            value: Word.ArrAbEq,
                             args: [[1, 2, 3.33, 4]]
                           },
                           children: []
@@ -601,7 +601,7 @@ describe("Parse Tree", () => {
                           nodeType: Word.PairComponentValue,
                           properties: {
                             type: Word.Fn,
-                            value: Word.AbEq,
+                            value: Word.ArrAbEq,
                             args: [
                               [["true", "false"], ["false", "true"], ["true"]]
                             ]

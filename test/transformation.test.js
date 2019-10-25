@@ -246,7 +246,7 @@ describe("AST", () => {
             keyId: "profile",
             valueResolver: [
               Word.Fn,
-              Word.AbEq,
+              Word.ArrAbEq,
               [["Twitter", "Reddit", "Pinterest"]],
               {
                 ns: 0
@@ -540,7 +540,7 @@ describe("AST", () => {
             keyId: "primes",
             valueResolver: [
               Word.Fn,
-              Word.AbEq,
+              Word.ArrAbEq,
               [[[11, 13], [17, 19, 23]]],
               {
                 ns: 0

@@ -44,7 +44,7 @@ describe("Helson", () => {
     );
     expect(status).to.deep.equal([
       false,
-      { eligibilityParams: { age: [Err.ValueOutSideRange.msg()] } }
+      { eligibilityParams: [{ age: [Err.ValueOutSideRange.msg()] }] }
     ]);
   });
 
@@ -176,10 +176,12 @@ describe("Helson", () => {
     expect(status).to.deep.equal([
       false,
       {
-        1: {
-          age: [Err.ValueOutSideRange.msg()],
-          score: [Err.KeyInSchemaNotInObj.msg()]
-        }
+        1: [
+          {
+            age: [Err.ValueOutSideRange.msg()],
+            score: [Err.KeyInSchemaNotInObj.msg()]
+          }
+        ]
       }
     ]);
   });
