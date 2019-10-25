@@ -173,6 +173,27 @@ const abEq = ({ value, key }, args, __, itr) => {
   return () => result;
 };
 
+const arrAbEq = (...params) => {
+  const { dim, currentDim, value, key } = params[0];
+  const itr = params[3];
+  const args = params[1];
+  if (dim && currentDim) {
+    if (dim === currentDim) {
+      return abEq(...params);
+    }
+  } else {
+    if (args && args[0] instanceof Array && value.length !== args[0].length) {
+      itr.report(
+        key,
+        Err.ArrayMembersDifferent.msg(args[0].length, value.length)
+      );
+      return () => false;
+    }
+  }
+
+  return pass();
+};
+
 const enumLookup = ({ value, key }, args, { ast }, itr) => {
   let result = false;
   const enumName = args[0];
@@ -217,6 +238,7 @@ function createContext() {
       isNum,
       isBool,
       abEq,
+      arrAbEq,
       enumLookup
     },
     [context.NS.User]: {},
