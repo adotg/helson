@@ -177,10 +177,8 @@ const arrAbEq = (...params) => {
   const { dim, currentDim, value, key } = params[0];
   const itr = params[3];
   const args = params[1];
-  if (dim && currentDim) {
-    if (dim === currentDim) {
-      return abEq(...params);
-    }
+  if (dim && currentDim && dim === currentDim) {
+    return abEq(...params);
   } else {
     if (args && args[0] instanceof Array && value.length !== args[0].length) {
       itr.report(

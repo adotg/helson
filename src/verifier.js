@@ -160,9 +160,7 @@ function itrFactory(ast, mount, matchObj) {
                   overflow = true;
                 }
 
-                if (astVal.typeProcessor[0] !== Word.Arr) {
-                  astVal.valueResolver[2] = [expectedArr[0][key]];
-                }
+                astVal.valueResolver[2] = [expectedArr[0][key]];
               }
             }
 

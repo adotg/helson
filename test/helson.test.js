@@ -358,14 +358,13 @@ describe("Helson", () => {
     expect(() => helson(schema)).to.throw();
   });
 
-  it("should parse and validate simple 1D simple array", () => {
+  it("should parse and validate simple 1D array", () => {
     const schema = `
       typdef Primes {
         []num "somePrimes": [2, 3, 5, 7, 11, 13, 17, 19, 23] 
       }
     `;
 
-    debugger;
     const result = helson(schema).match(
       {
         somePrimes: [2, 3, 5, 7, 11, 13, 17, 19, 23]
@@ -375,4 +374,176 @@ describe("Helson", () => {
 
     expect(result).to.deep.equal([true, {}]);
   });
+
+  it("should not validate simple 1D array with unequal length", () => {
+    const schema = `
+      typdef Primes {
+        []num "somePrimes": [2, 3, 5, 7, 11, 13, 17, 19] 
+      }
+    `;
+
+    const result1 = helson(schema).match(
+      {
+        somePrimes: [2, 3, 5, 7, 11, 13, 17, 19, 23]
+      },
+      "Primes"
+    );
+
+    const result2 = helson(schema).match(
+      {
+        somePrimes: [2, 3, 5, 7, 11, 13, 17]
+      },
+      "Primes"
+    );
+
+    expect([result1, result2]).to.deep.equal([
+      [
+        false,
+        {
+          somePrimes: [Err.ArrayMembersDifferent.msg(8, 9)]
+        }
+      ],
+      [
+        false,
+        {
+          somePrimes: [Err.ArrayMembersDifferent.msg(8, 7)]
+        }
+      ]
+    ]);
+  });
+
+  it("should not validate simple 1D array with unequal content", () => {
+    const schema = `
+      typdef Primes {
+        []num "somePrimes": [2, 3, 5, 7, 11, 13, 17, 19] 
+      }
+    `;
+
+    const result1 = helson(schema).match(
+      {
+        somePrimes: [2, 3, 5, 7, 11, 17, 19, 23]
+      },
+      "Primes"
+    );
+
+    const result2 = helson(schema).match(
+      {
+        somePrimes: [2, 3, 5, 7, "NA", 13, 17, 19]
+      },
+      "Primes"
+    );
+
+    const result3 = helson(schema).match(
+      {
+        somePrimes: [2, [3, 5, 7], "NA", 13, 17, 19]
+      },
+      "Primes"
+    );
+
+    expect([result1, result2, result3]).to.deep.equal([
+      [
+        false,
+        {
+          somePrimes: [
+            {
+              5: [Err.ValueMismatch.msg(13, 17)],
+              6: [Err.ValueMismatch.msg(17, 19)],
+              7: [Err.ValueMismatch.msg(19, 23)]
+            }
+          ]
+        }
+      ],
+      [
+        false,
+        {
+          somePrimes: [
+            {
+              4: [
+                Err.ValueMismatch.msg("number", "string"),
+                Err.ValueMismatch.msg(11, "NA")
+              ]
+            }
+          ]
+        }
+      ],
+      [
+        false,
+        {
+          somePrimes: [
+            {
+              1: [
+                Err.ValueMismatch.msg("number", "object"),
+                Err.ValueMismatch.msg(3, [3, 5, 7])
+              ],
+              2: [
+                Err.ValueMismatch.msg("number", "string"),
+                Err.ValueMismatch.msg(5, "NA")
+              ],
+              3: [Err.ValueMismatch.msg(7, 13)],
+              4: [Err.ValueMismatch.msg(11, 17)],
+              5: [Err.ValueMismatch.msg(13, 19)]
+            },
+            Err.ArrayMembersDifferent.msg(8, 6)
+          ]
+        }
+      ]
+    ]);
+  });
+
+  it("should validate simple multidim array with similar content", () => {
+    const schema = `
+      typdef MultiDim {
+        optnl [][]str "types": [["Arr", "Arr", "String"], ["String"], ["Arr", "Arr", "Foreign", "Type"], ["Bool"]],
+        optnl [][][]num "mat3D": [[[1, 2], [3, 2]], [[1, 1, 1], [5, 5, 5], [6, 6, 6]], [[]]]
+      }
+    `;
+
+    const result1 = helson(schema).match({}, "MultiDim");
+    const result2 = helson(schema).match(
+      {
+        mat3D: [[[1, 2], [3, 2]], [[1, 1, 1], [5, 5, 5], [6, 6, 6]], [[]]]
+      },
+      "MultiDim"
+    );
+    result3 = helson(schema).match(
+      {
+        types: [["Arr", "String"], [], [["Type"]]],
+        mat3D: [[[1, 2], [3, 2]], [[1, 1, 1], [5, 5, 5], [6, 6, 6]], [[]]]
+      },
+      "MultiDim"
+    );
+
+    expect([result1, result2, result3]).to.deep.equal([
+      [true, {}],
+      [true, {}],
+      [
+        false,
+        {
+          types: [
+            {
+              0: [
+                {
+                  1: [Err.ValueMismatch.msg("Arr", "String")]
+                },
+                Err.ArrayMembersDifferent.msg(3, 2)
+              ],
+              1: [Err.ArrayMembersDifferent.msg(1, 0)],
+              2: [
+                {
+                  0: [
+                    Err.ValueMismatch.msg("string", "object"),
+                    Err.ValueMismatch.msg("Arr", "Type")
+                  ]
+                },
+                Err.ArrayMembersDifferent.msg(4, 1)
+              ]
+            },
+            Err.ArrayMembersDifferent.msg(4, 3)
+          ]
+        }
+      ]
+    ]);
+  });
+
+  it.skip("should thorw error if no mount point is given", () => {});
 });
