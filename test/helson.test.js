@@ -459,7 +459,7 @@ describe("Helson", () => {
           somePrimes: [
             {
               4: [
-                Err.ValueMismatch.msg("number", "string"),
+                Err.TypeMismatch.msg("number", "string"),
                 Err.ValueMismatch.msg(11, "NA")
               ]
             }
@@ -472,11 +472,11 @@ describe("Helson", () => {
           somePrimes: [
             {
               1: [
-                Err.ValueMismatch.msg("number", "object"),
+                Err.TypeMismatch.msg("number", "object"),
                 Err.ValueMismatch.msg(3, [3, 5, 7])
               ],
               2: [
-                Err.ValueMismatch.msg("number", "string"),
+                Err.TypeMismatch.msg("number", "string"),
                 Err.ValueMismatch.msg(5, "NA")
               ],
               3: [Err.ValueMismatch.msg(7, 13)],
@@ -513,7 +513,14 @@ describe("Helson", () => {
       "MultiDim"
     );
 
-    expect([result1, result2, result3]).to.deep.equal([
+    result4 = helson(schema).match(
+      {
+        types: []
+      },
+      "MultiDim"
+    );
+
+    expect([result1, result2, result3, result4]).to.deep.equal([
       [true, {}],
       [true, {}],
       [
@@ -531,7 +538,7 @@ describe("Helson", () => {
               2: [
                 {
                   0: [
-                    Err.ValueMismatch.msg("string", "object"),
+                    Err.TypeMismatch.msg("string", "object"),
                     Err.ValueMismatch.msg("Arr", "Type")
                   ]
                 },
@@ -541,9 +548,51 @@ describe("Helson", () => {
             Err.ArrayMembersDifferent.msg(4, 3)
           ]
         }
+      ],
+      [
+        false,
+        {
+          types: [
+            Err.ArrayDimensionMismatch.msg(),
+            Err.ArrayMembersDifferent.msg(4, 0)
+          ]
+        }
       ]
     ]);
   });
 
-  it.skip("should thorw error if no mount point is given", () => {});
+  it("should validate with any multidim array with compliant content", () => {
+    const schema = `
+      typdef MultiDim {
+        [][][]str "types": pass
+      }
+    `;
+
+    debugger;
+    const result = helson(schema).match(
+      {
+        types: []
+      },
+      "MultiDim"
+    );
+    expect(result).to.deep.equal([
+      false,
+      {
+        types: [Err.ArrayDimensionMismatch.msg()]
+      }
+    ]);
+  });
+
+  it("should thorw error if no mount point is given", () => {
+    const schema = `
+      typdef MultiDim {
+        optnl [][]str "types": [["Arr", "Arr", "String"], ["String"], ["Arr", "Arr", "Foreign", "Type"], ["Bool"]],
+        optnl [][][]num "mat3D": [[[1, 2], [3, 2]], [[1, 1, 1], [5, 5, 5], [6, 6, 6]], [[]]]
+      }
+    `;
+
+    expect(() => helson(schema).match({})).to.throw(
+      Err.InvalidTypedefId.errInst()
+    );
+  });
 });

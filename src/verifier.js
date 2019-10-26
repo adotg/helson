@@ -131,6 +131,7 @@ function itrFactory(ast, mount, matchObj) {
             }
 
             if (i === matchObj.length) {
+              currentDim--;
               // The last most key in the object
               l.exit.forEach(fn => fn(astVal, store));
               astVal.typeProcessor = astVal.stackOfTypeProcessor.splice(
@@ -421,9 +422,18 @@ function verifier(ast, matchObj, config, context) {
           break;
 
         case Word.Arr:
-          nestedResp = rec(itrFactory(ast, item, item.value));
-          typeStatusGetter = () => nestedResp[0];
-          itrBase.report(item.key, nestedResp[1]);
+          typeStatusGetter = sysContext[Word.ArrChkFn](
+            item,
+            [],
+            { matchObj, ast },
+            itrBase
+          );
+
+          if (typeStatusGetter()) {
+            nestedResp = rec(itrFactory(ast, item, item.value));
+            typeStatusGetter = () => nestedResp[0];
+            itrBase.report(item.key, nestedResp[1]);
+          }
           break;
 
         case Word.Ref:
