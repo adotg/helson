@@ -583,6 +583,54 @@ describe("Helson", () => {
     ]);
   });
 
+  it("should validate with a multidim array of objects with compliant content", () => {
+    const schema = `
+      typdef Score [
+        str "name": pass,
+        num "score": [0, 1]
+      ]
+
+      typdef ScoreBoard {
+        []\`Score "today": pass
+      }
+    `;
+
+    const result1 = helson(schema).match(
+      {
+        today: [["John Wick", 1], ["Batman", 0.95]]
+      },
+      "ScoreBoard"
+    );
+
+    const result2 = helson(schema).match(
+      {
+        today: [["John Wick", "Infinity"]]
+      },
+      "ScoreBoard"
+    );
+
+    expect([result1, result2]).to.deep.equal([
+      [true, {}],
+      [
+        false,
+        {
+          today: [
+            {
+              0: [
+                {
+                  1: [
+                    Err.TypeMismatch.msg("number", "string"),
+                    Err.ValueOutSideRange.msg()
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    ]);
+  });
+
   it("should thorw error if no mount point is given", () => {
     const schema = `
       typdef MultiDim {
@@ -594,5 +642,24 @@ describe("Helson", () => {
     expect(() => helson(schema).match({})).to.throw(
       Err.InvalidTypedefId.errInst()
     );
+  });
+
+  it("should accept any key of type any", () => {
+    const schema = `
+      typdef HZD {
+        str "name": "Aloy",
+        any "summon": pass,
+      } 
+    `;
+
+    const result = helson(schema).match(
+      {
+        name: "Aloy",
+        summon: () => "Summon a Strider"
+      },
+      "HZD"
+    );
+
+    expect(result).to.deep.equal([true, {}]);
   });
 });
