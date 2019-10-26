@@ -2,6 +2,7 @@ const parser = require("./helson").parser;
 const transformer = require("./transformer");
 const { verifier } = require("./verifier");
 const { isSimpleObj } = require("./utils");
+const { InvalidTypedefId } = require("./err");
 
 function makeEligibleContext(proposedCtx) {
   const eligibleContext = {};
@@ -43,6 +44,10 @@ function helson(schemaInStr) {
   };
 
   resp.match = (matchObj, matchWithIdentifier, localContext) => {
+    if (!(matchWithIdentifier && typeof matchWithIdentifier === "string")) {
+      throw InvalidTypedefId.errInst();
+    }
+
     localContext = makeEligibleContext(localContext);
     context.setLocal(localContext);
     return verifier(ast, matchObj, { mount: matchWithIdentifier }, context);
