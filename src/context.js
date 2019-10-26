@@ -139,7 +139,7 @@ const lcroRange = ({ value, key }, args, _, itr) => {
 const isStr = ({ value, key }, _, __, itr) => {
   const result = typeof value === "string";
   if (!result) {
-    itr.report(key, Err.ValueMismatch.msg("string", typeof value));
+    itr.report(key, Err.TypeMismatch.msg("string", typeof value));
   }
 
   return () => result;
@@ -148,7 +148,7 @@ const isStr = ({ value, key }, _, __, itr) => {
 const isNum = ({ value, key }, _, __, itr) => {
   const result = typeof value === "number";
   if (!result) {
-    itr.report(key, Err.ValueMismatch.msg("number", typeof value));
+    itr.report(key, Err.TypeMismatch.msg("number", typeof value));
   }
 
   return () => result;
@@ -157,7 +157,25 @@ const isNum = ({ value, key }, _, __, itr) => {
 const isBool = ({ value, key }, _, __, itr) => {
   const result = typeof value === "boolean";
   if (!result) {
-    itr.report(key, Err.ValueMismatch.msg("number", typeof value));
+    itr.report(key, Err.TypeMismatch.msg("number", typeof value));
+  }
+
+  return () => result;
+};
+
+const isArr = ({ value, key, astVal }, _, __, itr) => {
+  let result = value instanceof Array;
+
+  if (!result) {
+    itr.report(key, Err.TypeMismatch.msg("Arr", typeof value));
+  } else {
+    if (
+      !value.length &&
+      astVal.typeProcessor.filter(type => type === Word.Arr).length > 1
+    ) {
+      result = false;
+      itr.report(key, Err.ArrayDimensionMismatch.msg());
+    }
   }
 
   return () => result;
@@ -235,6 +253,7 @@ function createContext() {
       isStr,
       isNum,
       isBool,
+      isArr,
       abEq,
       arrAbEq,
       enumLookup
