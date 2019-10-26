@@ -1,3 +1,7 @@
+const premadeObjs = {
+  invalidTypedefId: new Error("Not a valid typedef identifier")
+};
+
 module.exports = {
   ValueOutSideRange: { msg: () => "Value outside range" },
   KeyInSchemaNotInObj: {
@@ -6,7 +10,7 @@ module.exports = {
   KeyInObjNotInSchema: {
     msg: () => "Key present in input object but not in schema"
   },
-  ValueMismatch: {
+  TypeMismatch: {
     msg: (expected, received) =>
       `Value of type ${expected} expected; received ${received}`
   },
@@ -20,5 +24,11 @@ module.exports = {
   ArrayMembersDifferent: {
     msg: (expected, received) =>
       `Different array length in comparison; expected length: ${expected}, received length: ${received}`
+  },
+  ArrayDimensionMismatch: {
+    msg: () => `Array of dimension mismatch`
+  },
+  InvalidTypedefId: {
+    errInst: () => premadeObjs.invalidTypedefId
   }
 };
