@@ -445,6 +445,10 @@ function verifier(ast, matchObj, config, context) {
           typeStatusGetter = () => nestedResp[0];
           itrBase.report(item.key, nestedResp[1]);
           break;
+
+        case Word.Any:
+          typeStatusGetter = sysContext[Word.Identity]();
+          break;
       }
 
       // TODO if type checking fails continue, don't proceed to value checking
