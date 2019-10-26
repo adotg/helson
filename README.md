@@ -20,6 +20,8 @@
 
 [ ] Throw proper error during tokenizing / parsing / transformation phrase
 
+[ ] Support for nullable
+
 ## Note
 
 - Decimals will be in the form of 0.1234. The prefix zero is mandatory.
