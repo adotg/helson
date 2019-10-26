@@ -5,9 +5,9 @@ const { Word } = require("../src/parse-tree"); // temporary location before the 
 describe("Parse Tree", () => {
   describe("Primitive Type", () => {
     it(`should construct parse tree for a schema with keys=2;
-      Checks [typdef, str with pass, optnl, num with rangeFn]`, () => {
+      Checks [typedef, str with pass, optnl, num with rangeFn]`, () => {
       const schema = `
-        typdef Person {
+        typedef Person {
           str "name": pass,
           optnl num "age": [, 100]
         }
@@ -92,7 +92,7 @@ describe("Parse Tree", () => {
     it(`should construct parse tree of a simple object with different types of keys;
       Checks [str with fail, str with regexp, num with decimal, bool]`, () => {
       const schema = `
-        typdef Alien {
+        typedef Alien {
           str "name": pass,
           optnl str "id": fail,
           str "power": /pow\-\d/,
@@ -255,7 +255,7 @@ describe("Parse Tree", () => {
     it(`should construct parse tree of a simple object with different types of keys and function as values;
       Checks [str with pass, str with user context function, any type with pass]`, () => {
       const schema = `
-        typdef Alien {
+        typedef Alien {
           str "name": pass,
           optnl str "id": idValidity
           any "details": pass,
@@ -368,12 +368,12 @@ describe("Parse Tree", () => {
       it(`should construct parse tree of an array;
         Checks [ordered array, unordered array, multidim array]`, () => {
         const schema = `
-          typdef Power {
+          typedef Power {
             str "name": pass,
             num "damage": [0, 100],
             optnl num "range": [1, 50]
           }
-          typdef Alien {
+          typedef Alien {
             [][][]str "spaceships": [[["this", "is"], ["really"], ["super"]], [["really"]], [["random"], ["ness"]]],
             []str "test": ["yooo", "yaa"],
             []num "values": [1, 2, 3.33, 4],
@@ -393,7 +393,7 @@ describe("Parse Tree", () => {
                 {
                   nodeType: Word.StructureIdentifier,
                   properties: {
-                    type: "typdef",
+                    type: "typedef",
                     id: "Power"
                   },
                   children: []
@@ -651,11 +651,11 @@ describe("Parse Tree", () => {
         // In the form of
         // [110, "Report submitted yesterday!", no-reply@mail.box, { isEncrypted: true }, ['moderator@mail.box', 'akash']]
         const schema = `
-          typdef Admins [
+          typedef Admins [
             str "cc1": "moderator@mail.box",
             str "cc2": pass
           ]
-          typdef Report [
+          typedef Report [
             num "code": pass,
             str "msg": pass,
             str "from": "no-reply@mail.box",
@@ -666,7 +666,7 @@ describe("Parse Tree", () => {
             \`Admins "admins": pass,
           ]
 
-          typdef Response {
+          typedef Response {
             \`Report "reports": pass
           }
         `;
@@ -992,11 +992,11 @@ describe("Parse Tree", () => {
 
       it("should throw error when an array is present in ordered list (olist)", () => {
         const schema = `
-          typdef Admins [
+          typedef Admins [
             str "cc1": "moderator@mail.box",
             str "cc2": pass
           ]
-          typdef Report [
+          typedef Report [
             num "code": pass,
             str "msg": pass,
             str "from": "no-reply@mail.box",
@@ -1008,7 +1008,7 @@ describe("Parse Tree", () => {
             \`Admins "admins": pass,
           ]
 
-          typdef Response {
+          typedef Response {
             \`Report "reports": pass
           }
         `;
@@ -1367,10 +1367,10 @@ describe("Parse Tree", () => {
             "A1": "nimona@mail.box",
             "A2": "kidflash@mail.box"
           }
-          typdef Report [
+          typedef Report [
             \`Admins "by": \`"Highest"
           ]
-          typdef Response {
+          typedef Response {
             \`Report "reports": pass,
             \`Admins "reviewer": \`"A1"
           }
@@ -1588,13 +1588,13 @@ describe("Parse Tree", () => {
       });
       it("should construct parse tree with composite type", () => {
         const schema = `
-          typdef Competition {
+          typedef Competition {
             num "code": pass,
             str "name": pass,
             num "pos": pass
           }
 
-          typdef Credential [
+          typedef Credential [
             str "Name": pass,
             str "Profession": pass,
             num "medal": (1, 5),

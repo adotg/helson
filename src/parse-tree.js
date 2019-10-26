@@ -33,7 +33,7 @@ const Word = {
   Rec: "Rec" /* Recursive */,
   Identity: "pass",
   Fail: "fail",
-  TypeDef: "typdef",
+  TypeDef: "typedef",
   OList: "olist",
   Enum: "enum",
   EnumLookup: "enumLookup",

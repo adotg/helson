@@ -5,7 +5,7 @@ const Err = require("../src/err");
 describe("Helson", () => {
   it("should verifier a simple object", () => {
     const schema = `
-      typdef Person {
+      typedef Person {
         str "name": pass,
         num "age": [18, 100]
       } 
@@ -23,7 +23,7 @@ describe("Helson", () => {
 
   it("should not match if the value range is outside the allowed range", () => {
     const schema = `
-      typdef Person {
+      typedef Person {
         str "name": pass,
         obj "eligibilityParams": {
           num "age": [18, 100],
@@ -50,12 +50,12 @@ describe("Helson", () => {
 
   it("should match if an optional property is not present", () => {
     const schema = `
-      typdef EligibilityParams {
+      typedef EligibilityParams {
         num "age": [18, 100],
         num "score": [0, 1]
       }
 
-      typdef Person {
+      typedef Person {
         str "name": pass,
         \`EligibilityParams "eligibilityParams": pass,
         optnl obj "previousApplication": {
@@ -80,13 +80,13 @@ describe("Helson", () => {
 
   it("should match if an nested optional property is not present", () => {
     const schema = `
-      typdef EligibilityParams {
+      typedef EligibilityParams {
         num "age": [18, 100],
         num "score": [0, 1],
         optnl str "recommendation": pass,
       }
 
-      typdef Person {
+      typedef Person {
         str "name": pass,
         optnl \`EligibilityParams "eligibilityParams": pass,
       } 
@@ -113,7 +113,7 @@ describe("Helson", () => {
 
   it("should match an ordered list", () => {
     const schema = `
-      typdef Person [
+      typedef Person [
         str "name": pass,
         num "score": [0, 1]
       ] 
@@ -125,12 +125,12 @@ describe("Helson", () => {
 
   it("should match an ordered list with object with optional key", () => {
     const schema = `
-      typdef EligibilityParams {
+      typedef EligibilityParams {
         num "age": [18, 100],
         num "score": [0, 1],
         optnl str "recommendation": pass,
       }
-      typdef Person [
+      typedef Person [
         str "name": pass,
         \`EligibilityParams "eligibilityParams": pass
       ] 
@@ -152,12 +152,12 @@ describe("Helson", () => {
 
   it("should not match an ordered list with object with non optional key not present and outside range", () => {
     const schema = `
-      typdef EligibilityParams {
+      typedef EligibilityParams {
         num "age": [18, 100],
         num "score": [0, 1],
         optnl str "recommendation": pass,
       }
-      typdef Person [
+      typedef Person [
         str "name": pass,
         \`EligibilityParams "eligibilityParams": pass
       ] 
@@ -195,7 +195,7 @@ describe("Helson", () => {
         "Fail": "F"
       }
 
-      typdef Person {
+      typedef Person {
         str "name": pass,
         \`Grades "failGrade": \`"Fail",
         \`Grades "gradeReceived": pass,
@@ -223,7 +223,7 @@ describe("Helson", () => {
         "Fail": "F"
       }
 
-      typdef Person {
+      typedef Person {
         str "name": pass,
         \`Grades "failGrade": \`"Fail",
         \`Grades "gradeReceived": pass,
@@ -260,7 +260,7 @@ describe("Helson", () => {
         "AllOk": 200
       }
 
-      typdef Data {
+      typedef Data {
         str "userId": pass,
         optnl bool "isLoggedIn": pass,
       }
@@ -270,7 +270,7 @@ describe("Helson", () => {
         "Verbose": ([500, { "items": [] }, { "code": 1, "msg": "The third-party API didn't respond before timeout." }])
       }
 
-      typdef ErrResponseFormat [
+      typedef ErrResponseFormat [
         \`HttpErrorCode "code": pass,
         obj "data": {
           []\`Data "items": pass
@@ -281,14 +281,14 @@ describe("Helson", () => {
         }
       ]
 
-      typdef SuccessResponseFormat [
+      typedef SuccessResponseFormat [
         \`HttpErrorCode "code": \`"AllOK",
         obj "data": {
           []\`Data "items": pass
         }
       ]
 
-      typdef ErrResp {
+      typedef ErrResp {
         \`ClassicResponse "resp": pass,
       }
     `;
@@ -322,7 +322,7 @@ describe("Helson", () => {
         "AllOk": 200
       }
 
-      typdef Data {
+      typedef Data {
         str "userId": pass,
         optnl bool "isLoggedIn": pass,
       }
@@ -332,7 +332,7 @@ describe("Helson", () => {
         "Verbose": ([500, { "items": [] }, { "code": 1 }])
       }
 
-      typdef ErrResponseFormat [
+      typedef ErrResponseFormat [
         \`HttpErrorCode "code": pass,
         obj "data": {
           []\`Data "items": pass
@@ -343,14 +343,14 @@ describe("Helson", () => {
         }
       ]
 
-      typdef SuccessResponseFormat [
+      typedef SuccessResponseFormat [
         \`HttpErrorCode "code": \`"AllOK",
         obj "data": {
           []\`Data "items": pass
         }
       ]
 
-      typdef ErrResp {
+      typedef ErrResp {
         \`ClassicResponse "resp": pass,
       }
     `;
@@ -360,7 +360,7 @@ describe("Helson", () => {
 
   it("should parse and validate simple 1D array", () => {
     const schema = `
-      typdef Primes {
+      typedef Primes {
         []num "somePrimes": [2, 3, 5, 7, 11, 13, 17, 19, 23] 
       }
     `;
@@ -377,7 +377,7 @@ describe("Helson", () => {
 
   it("should not validate simple 1D array with unequal length", () => {
     const schema = `
-      typdef Primes {
+      typedef Primes {
         []num "somePrimes": [2, 3, 5, 7, 11, 13, 17, 19] 
       }
     `;
@@ -414,7 +414,7 @@ describe("Helson", () => {
 
   it("should not validate simple 1D array with unequal content", () => {
     const schema = `
-      typdef Primes {
+      typedef Primes {
         []num "somePrimes": [2, 3, 5, 7, 11, 13, 17, 19] 
       }
     `;
@@ -492,7 +492,7 @@ describe("Helson", () => {
 
   it("should validate simple multidim array with similar content", () => {
     const schema = `
-      typdef MultiDim {
+      typedef MultiDim {
         optnl [][]str "types": [["Arr", "Arr", "String"], ["String"], ["Arr", "Arr", "Foreign", "Type"], ["Bool"]],
         optnl [][][]num "mat3D": [[[1, 2], [3, 2]], [[1, 1, 1], [5, 5, 5], [6, 6, 6]], [[]]]
       }
@@ -563,7 +563,7 @@ describe("Helson", () => {
 
   it("should validate with any multidim array with compliant content", () => {
     const schema = `
-      typdef MultiDim {
+      typedef MultiDim {
         [][][]str "types": pass
       }
     `;
@@ -585,12 +585,12 @@ describe("Helson", () => {
 
   it("should validate with a multidim array of objects with compliant content", () => {
     const schema = `
-      typdef Score [
+      typedef Score [
         str "name": pass,
         num "score": [0, 1]
       ]
 
-      typdef ScoreBoard {
+      typedef ScoreBoard {
         []\`Score "today": pass
       }
     `;
@@ -633,7 +633,7 @@ describe("Helson", () => {
 
   it("should thorw error if no mount point is given", () => {
     const schema = `
-      typdef MultiDim {
+      typedef MultiDim {
         optnl [][]str "types": [["Arr", "Arr", "String"], ["String"], ["Arr", "Arr", "Foreign", "Type"], ["Bool"]],
         optnl [][][]num "mat3D": [[[1, 2], [3, 2]], [[1, 1, 1], [5, 5, 5], [6, 6, 6]], [[]]]
       }
@@ -646,7 +646,7 @@ describe("Helson", () => {
 
   it("should accept any key of type any", () => {
     const schema = `
-      typdef HZD {
+      typedef HZD {
         str "name": "Aloy",
         any "summon": pass,
       } 

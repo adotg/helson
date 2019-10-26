@@ -11,7 +11,7 @@ anything            \(.+\)
 
 \s+                 /* ignore whitespace */
 
-typdef              { this.begin('fn'); return 'TYPEDEF'; }
+typedef             { this.begin('fn'); return 'TYPEDEF'; }
 olist               return 'OLIST'
 optnl               return 'OPTIONAL'
 enum                { this.begin('grp'); return 'ENUM'; }

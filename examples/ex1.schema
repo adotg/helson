@@ -1,14 +1,14 @@
-typdef Person {
+typedef Person {
 	str "name": pass,
 	optnl num "age": [, 100]
 }
 
-typdef Order1 {
+typedef Order1 {
 	`Person "customer": pass,
 	num "quantity": pass,
 }
 
-typdef Order {
+typedef Order {
 	`Person "customer": pass,
 	num "quantity": pass,
 

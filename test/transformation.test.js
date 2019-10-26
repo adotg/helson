@@ -10,12 +10,12 @@ function l(obj) {
 describe("AST", () => {
   it("should transform simple level 1 object", () => {
     const schema = `
-      typdef Person {
+      typedef Person {
         str "name": pass,
         optnl num "age": [, 100]
       }
 
-      typdef Items [
+      typedef Items [
         str "name": pass,
         str "itemCode": "no-code",
         num "quantity": [1, 10]
@@ -79,7 +79,7 @@ describe("AST", () => {
           }
         }
       },
-      typdef: {
+      typedef: {
         Person: {
           name: {
             preProcessor: ["optionality", false],
@@ -163,7 +163,7 @@ describe("AST", () => {
         "ClassO": 3
       }
 
-      typdef Person {
+      typedef Person {
         str "name": pass,
         optnl []str "profile": ["Twitter", "Reddit", "Pinterest"]
         obj "cred": {
@@ -333,7 +333,7 @@ describe("AST", () => {
         "AllOK": 200
       }
 
-      typdef Data {
+      typedef Data {
         str "userId": pass,
         optnl bool "isLoggedIn": pass,
       }
@@ -342,21 +342,21 @@ describe("AST", () => {
         "MessedUp": ([500, { "items": [[], [{ "userId": "a" }, { "userId" : "b", "isLoggedIn": true }]] }]),
       }
 
-      typdef ErrResponseFormat [
+      typedef ErrResponseFormat [
         \`HttpErrorCode "code": \`"InternalServerError",
         obj "data": {
           [][]\`Data "items": pass
         }
       ]
 
-      typdef SuccessResponseFormat [
+      typedef SuccessResponseFormat [
         \`HttpErrorCode "code": \`"AllOK",
         obj "data": {
           []\`Data "items": arrLenGreaterThanOne
         }
       ]
 
-      typdef ErrResp {
+      typedef ErrResp {
         \`ClassicResponse "resp": \`"MessedUp",
         obj "err": {
           num "code": pass,
