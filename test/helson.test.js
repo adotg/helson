@@ -72,7 +72,7 @@ describe("Helson", () => {
 
       typedef Person {
         str "name": pass,
-        \`EligibilityParams "eligibilityParams": pass,
+        &EligibilityParams "eligibilityParams": pass,
         optnl obj "previousApplication": {
           num "applicationNo": pass,
           bool "status": pass
@@ -103,7 +103,7 @@ describe("Helson", () => {
 
       typedef Person {
         str "name": pass,
-        optnl \`EligibilityParams "eligibilityParams": pass,
+        optnl &EligibilityParams "eligibilityParams": pass,
       } 
     `;
 
@@ -147,7 +147,7 @@ describe("Helson", () => {
       }
       typedef Person [
         str "name": pass,
-        \`EligibilityParams "eligibilityParams": pass
+        &EligibilityParams "eligibilityParams": pass
       ] 
     `;
 
@@ -174,7 +174,7 @@ describe("Helson", () => {
       }
       typedef Person [
         str "name": pass,
-        \`EligibilityParams "eligibilityParams": pass
+        &EligibilityParams "eligibilityParams": pass
       ] 
     `;
 
@@ -212,8 +212,8 @@ describe("Helson", () => {
 
       typedef Person {
         str "name": pass,
-        \`Grades "failGrade": \`"Fail",
-        \`Grades "gradeReceived": pass,
+        &Grades "failGrade": &"Fail",
+        &Grades "gradeReceived": pass,
       }
     `;
 
@@ -240,8 +240,8 @@ describe("Helson", () => {
 
       typedef Person {
         str "name": pass,
-        \`Grades "failGrade": \`"Fail",
-        \`Grades "gradeReceived": pass,
+        &Grades "failGrade": &"Fail",
+        &Grades "gradeReceived": pass,
       }
     `;
 
@@ -280,15 +280,15 @@ describe("Helson", () => {
         optnl bool "isLoggedIn": pass,
       }
 
-      enum ClassicResponse \`ErrResponseFormat {
+      enum ClassicResponse &ErrResponseFormat {
         "Simple": ([500, { "items": []}]),
         "Verbose": ([500, { "items": [] }, { "code": 1, "msg": "The third-party API didn't respond before timeout." }])
       }
 
       typedef ErrResponseFormat [
-        \`HttpErrorCode "code": pass,
+        &HttpErrorCode "code": pass,
         obj "data": {
-          []\`Data "items": pass
+          []&Data "items": pass
         },
         optnl obj "err": {
           num "code": pass,
@@ -297,14 +297,14 @@ describe("Helson", () => {
       ]
 
       typedef SuccessResponseFormat [
-        \`HttpErrorCode "code": \`"AllOK",
+        &HttpErrorCode "code": &"AllOK",
         obj "data": {
-          []\`Data "items": pass
+          []&Data "items": pass
         }
       ]
 
       typedef ErrResp {
-        \`ClassicResponse "resp": pass,
+        &ClassicResponse "resp": pass,
       }
     `;
 
@@ -342,15 +342,15 @@ describe("Helson", () => {
         optnl bool "isLoggedIn": pass,
       }
 
-      enum ClassicResponse \`ErrResponseFormat {
+      enum ClassicResponse &ErrResponseFormat {
         "Simple": ([500, { "items": []}]),
         "Verbose": ([500, { "items": [] }, { "code": 1 }])
       }
 
       typedef ErrResponseFormat [
-        \`HttpErrorCode "code": pass,
+        &HttpErrorCode "code": pass,
         obj "data": {
-          []\`Data "items": pass
+          []&Data "items": pass
         },
         optnl obj "err": {
           num "code": pass,
@@ -359,14 +359,14 @@ describe("Helson", () => {
       ]
 
       typedef SuccessResponseFormat [
-        \`HttpErrorCode "code": \`"AllOK",
+        &HttpErrorCode "code": &"AllOK",
         obj "data": {
-          []\`Data "items": pass
+          []&Data "items": pass
         }
       ]
 
       typedef ErrResp {
-        \`ClassicResponse "resp": pass,
+        &ClassicResponse "resp": pass,
       }
     `;
 
@@ -605,7 +605,7 @@ describe("Helson", () => {
       ]
 
       typedef ScoreBoard {
-        []\`Score "today": pass
+        []&Score "today": pass
       }
     `;
 

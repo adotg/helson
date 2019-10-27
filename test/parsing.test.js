@@ -378,7 +378,7 @@ describe("Parse Tree", () => {
             []str "test": ["yooo", "yaa"],
             []num "values": [1, 2, 3.33, 4],
             optnl [][]bool "flags": [[true, false], [false, true], [true]],
-            []\`Power "power": pass
+            []&Power "power": pass
           }
         `;
         const pt = parser.parse(schema);
@@ -663,11 +663,11 @@ describe("Parse Tree", () => {
               bool "isEncrypted": pass,
               optnl bool "isLoopback": true,
             },
-            \`Admins "admins": pass,
+            &Admins "admins": pass,
           ]
 
           typedef Response {
-            \`Report "reports": pass
+            &Report "reports": pass
           }
         `;
 
@@ -1005,11 +1005,11 @@ describe("Parse Tree", () => {
               optnl bool "isLoopback": true,
               optnl []str "otherInf": pass
             },
-            \`Admins "admins": pass,
+            &Admins "admins": pass,
           ]
 
           typedef Response {
-            \`Report "reports": pass
+            &Report "reports": pass
           }
         `;
 
@@ -1368,11 +1368,11 @@ describe("Parse Tree", () => {
             "A2": "kidflash@mail.box"
           }
           typedef Report [
-            \`Admins "by": \`"Highest"
+            &Admins "by": &"Highest"
           ]
           typedef Response {
-            \`Report "reports": pass,
-            \`Admins "reviewer": \`"A1"
+            &Report "reports": pass,
+            &Admins "reviewer": &"A1"
           }
         `;
 
@@ -1598,10 +1598,10 @@ describe("Parse Tree", () => {
             str "Name": pass,
             str "Profession": pass,
             num "medal": (1, 5),
-            []\`Competition "competitionResult": pass
+            []&Competition "competitionResult": pass
           ]
 
-          enum Top3 \`Credential {
+          enum Top3 &Credential {
             "#1": (["Deadpool", "Trash Talking", 10, [{ "code": 0, "name": "high jump", "pos": 1}, { "code": 1, "name": "high jump", "pos": 2}]]),
             "#3": (["Flash", "Trash Talking", 8, [{ "code", 0, "name": "running", "pos": 1}]]),
             "#2": (["Spiderman", "Friendly", 8, [{ "code", 0, "name": "long jump", "pos": 1}]])

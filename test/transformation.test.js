@@ -169,8 +169,8 @@ describe("AST", () => {
         obj "cred": {
           num "age": [18, 150],
           str "ssn": ssnValidator,
-          optnl []\`Facility "facilities": pass,
-          \`Facility "defaultFacility": \`"ClassM"
+          optnl []&Facility "facilities": pass,
+          &Facility "defaultFacility": &"ClassM"
         }
       } 
     `;
@@ -338,26 +338,26 @@ describe("AST", () => {
         optnl bool "isLoggedIn": pass,
       }
 
-      enum ClassicResponse \`ErrResponseFormat {
+      enum ClassicResponse &ErrResponseFormat {
         "MessedUp": ([500, { "items": [[], [{ "userId": "a" }, { "userId" : "b", "isLoggedIn": true }]] }]),
       }
 
       typedef ErrResponseFormat [
-        \`HttpErrorCode "code": \`"InternalServerError",
+        &HttpErrorCode "code": &"InternalServerError",
         obj "data": {
-          [][]\`Data "items": pass
+          [][]&Data "items": pass
         }
       ]
 
       typedef SuccessResponseFormat [
-        \`HttpErrorCode "code": \`"AllOK",
+        &HttpErrorCode "code": &"AllOK",
         obj "data": {
-          []\`Data "items": arrLenGreaterThanOne
+          []&Data "items": arrLenGreaterThanOne
         }
       ]
 
       typedef ErrResp {
-        \`ClassicResponse "resp": \`"MessedUp",
+        &ClassicResponse "resp": &"MessedUp",
         obj "err": {
           num "code": pass,
           str "msg": pass,
