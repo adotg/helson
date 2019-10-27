@@ -325,7 +325,7 @@ str_arr_value
     : IDENTITY                                  { $$ = ({ type: Fn,  value: $1 }) }
     | FAIL                                      { $$ = ({ type: Fn,  value: $1 }) }
     | str_arr_body_valid                        { $$ = ({ type: Fn,  value: ArrAbEq, args: [$1] }) }
-    | CTX_USER_FN                               { $$ = ({ type: Fn,  value: $1 }) }
+    | CTX_USER_FN                               { $$ = ({ type: UFn,  value: $1 }) }
     ;
 
 str_arr_body_valid
@@ -391,7 +391,7 @@ num_arr_value
     : IDENTITY                                  { $$ = ({ type: Fn,  value: $1 }) }
     | FAIL                                      { $$ = ({ type: Fn,  value: $1 }) }
     | num_arr_body_valid                        { $$ = ({ type: Fn,  value: ArrAbEq, args: [$1] }) }
-    | CTX_USER_FN                               { $$ = ({ type: Fn,  value: $1 }) }
+    | CTX_USER_FN                               { $$ = ({ type: UFn,  value: $1 }) }
     ;
 
 num_arr_body_valid
@@ -465,6 +465,7 @@ obj_value
 any_value
     : IDENTITY                                  { $$ = ({ type: Fn,  value: $1 }) }
     | FAIL                                      { $$ = ({ type: Fn,  value: $1 }) }
+    | CTX_USER_FN                               { $$ = ({ type: UFn, value: $1 }) }
     ;
 
 %%
