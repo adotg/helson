@@ -371,6 +371,8 @@ function postTransformationMutator(ast, context) {
 
 function verifier(ast, matchObj, config, context) {
   const sysContext = context.get(context.NS.System);
+  const userContext = context.get(context.NS.User);
+  const localContext = context.get(context.NS.Local);
 
   const finalStatus = (function rec(itrBase) {
     const optionalityStatusGetter = itrBase.subentry()
@@ -384,6 +386,7 @@ function verifier(ast, matchObj, config, context) {
     let item;
     let fnSig;
     let localStatusCollection = [];
+    let fn;
     while ((({ done, overflow, item } = itr.next()), !done)) {
       let nestedResp;
 
@@ -454,21 +457,25 @@ function verifier(ast, matchObj, config, context) {
       // TODO if type checking fails continue, don't proceed to value checking
 
       // Value checking
+      fnSig = item.astVal.valueResolver[1].split(",");
       switch (item.astVal.valueResolver[0]) {
         case Word.Fn:
-        case Word.UFn: // TODO user context is not taken care of
-          fnSig = item.astVal.valueResolver[1].split(",");
-          valueStatusGetter = sysContext[fnSig[0]](
-            item,
-            [...fnSig.slice(1), ...(item.astVal.valueResolver[2] || [])],
-            {
-              matchObj,
-              ast
-            },
-            itrBase
-          );
+          fn = sysContext[fnSig[0]];
+          break;
+        case Word.UFn:
+          fn = localContext[fnSig[0]] || userContext[fnSig[0]];
           break;
       }
+
+      valueStatusGetter = fn(
+        item,
+        [...fnSig.slice(1), ...(item.astVal.valueResolver[2] || [])],
+        {
+          matchObj,
+          ast
+        },
+        itrBase
+      );
 
       localStatusCollection.push(typeStatusGetter() && valueStatusGetter());
     }

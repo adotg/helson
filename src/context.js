@@ -236,10 +236,12 @@ const enumLookup = ({ value, key }, args, { ast }, itr) => {
 
 function createContext() {
   const context = {};
+  const uCtx = {};
 
   context.NS = {
     System: 0,
-    User: 1
+    User: 1,
+    Local: 2
   };
 
   context.def = {
@@ -258,25 +260,29 @@ function createContext() {
       arrAbEq,
       enumLookup
     },
-    [context.NS.User]: {},
-    _local: {}
+    [context.NS.User]: uCtx,
+    [context.NS.Local]: {}
   };
 
   context.get = ns => context.def[ns];
 
   context.set = userCtx => {
-    if (userCtx === null) {
-      context.def[context.NS.User] = {};
-    } else {
-      context.def[context.NS.User] = userCtx;
+    if (userCtx !== null) {
+      let key;
+      for (key in userCtx) {
+        if (!userCtx.hasOwnProperty(key)) {
+          continue;
+        }
+        uCtx[key] = userCtx[key];
+      }
     }
   };
 
   context.setLocal = localCtx => {
     if (localCtx === null) {
-      context.def._local = {};
+      context.def[context.NS.Local] = {};
     } else {
-      context.def._local = localCtx;
+      context.def[context.NS.Local] = localCtx;
     }
   };
 

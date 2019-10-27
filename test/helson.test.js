@@ -2,6 +2,21 @@ const expect = require("chai").expect;
 const helson = require("../src/index");
 const Err = require("../src/err");
 
+const checkListLen = ({ value, key, currentDim }, _, __, itr) => {
+  if (currentDim) {
+    return () => true;
+  } else {
+    // The final array comparison
+    const result = value.length > 4;
+
+    if (!result) {
+      itr.report(key, "Length of arr should be more than 4");
+    }
+
+    return () => result;
+  }
+};
+
 describe("Helson", () => {
   it("should verifier a simple object", () => {
     const schema = `
@@ -568,7 +583,6 @@ describe("Helson", () => {
       }
     `;
 
-    debugger;
     const result = helson(schema).match(
       {
         types: []
@@ -661,5 +675,83 @@ describe("Helson", () => {
     );
 
     expect(result).to.deep.equal([true, {}]);
+  });
+
+  describe("CustomContextFunction", () => {
+    it("should accept and run custom context functions from user", () => {
+      const schema = `
+        typedef Weapons{
+          []str "active": checkListLen
+        }
+      `;
+
+      const result = helson(schema)
+        .context({ checkListLen })
+        .match(
+          {
+            active: ["Ropecaster", "Tripcaster", "Icerail", "Bow"]
+          },
+          "Weapons"
+        );
+
+      expect(result).to.deep.equal([
+        false,
+        {
+          active: ["Length of arr should be more than 4"]
+        }
+      ]);
+    });
+
+    it("should accept and run local context functions from user", () => {
+      const schema = `
+        typedef Weapons{
+          []str "active": checkListLen
+        }
+      `;
+
+      const result1 = helson(schema)
+        .context({ checkListLen })
+        .match(
+          {
+            active: ["Ropecaster", "Tripcaster", "Icerail", "Bow"]
+          },
+          "Weapons",
+          {
+            checkListLen: ({ value, key, currentDim }, _, __, itr) => {
+              if (currentDim) {
+                return () => true;
+              } else {
+                // The final array comparison
+                const result = value.length > 3;
+
+                if (!result) {
+                  itr.report(key, "Length of arr should be more than 3");
+                }
+
+                return () => result;
+              }
+            }
+          }
+        );
+
+      const result2 = helson(schema)
+        .context({ checkListLen })
+        .match(
+          {
+            active: ["Ropecaster", "Tripcaster", "Icerail", "Bow"]
+          },
+          "Weapons"
+        );
+
+      expect([result1, result2]).to.deep.equal([
+        [true, {}],
+        [
+          false,
+          {
+            active: ["Length of arr should be more than 4"]
+          }
+        ]
+      ]);
+    });
   });
 });
