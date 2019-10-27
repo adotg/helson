@@ -19,14 +19,13 @@ const KeyPresence = {
 const isOptional = itr => {
   const iterableKeys = {};
   const releasables = [];
-  const report = {};
   let i = 0;
   let status = true;
 
   releasables[i++] = itr.on("enter", mountedAST => {
     let key;
     for (key in mountedAST) {
-      if (!mountedAST.hasOwnProperty(key)) {
+      if (!{}.hasOwnProperty.call(mountedAST, key)) {
         continue;
       }
       iterableKeys[key] = mountedAST[key].preProcessor[1]
@@ -49,7 +48,7 @@ const isOptional = itr => {
   releasables[i++] = itr.on("exit", () => {
     let key;
     for (key in iterableKeys) {
-      if (!iterableKeys.hasOwnProperty(key)) {
+      if (!{}.hasOwnProperty.call(iterableKeys, key)) {
         continue;
       }
 
@@ -270,7 +269,7 @@ function createContext() {
     if (userCtx !== null) {
       let key;
       for (key in userCtx) {
-        if (!userCtx.hasOwnProperty(key)) {
+        if (!{}.hasOwnProperty.call(userCtx, key)) {
           continue;
         }
         uCtx[key] = userCtx[key];

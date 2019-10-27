@@ -35,7 +35,7 @@ xprt.isArray = obj => obj instanceof Array;
 
 xprt.hashOfStr = str => {
   // Will emulate a 32bit integer in JS. Hence groups 4 character of 1byte at once to create 4bytes word.
-  words = str
+  const words = str
     .split("")
     .reduce((seq, val, i) => {
       if (!(i % 4)) {
@@ -54,7 +54,7 @@ xprt.hashOfStr = str => {
   let rotation = 0;
   // Total size 2^32 which is represented as signed int
   const L = Math.pow(2, 31);
-  hash1st = words.reduce((sum, val, i) => {
+  const hash1st = words.reduce((sum, val) => {
     sum += val;
 
     if (sum >= L) {

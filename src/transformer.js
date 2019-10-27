@@ -6,12 +6,6 @@ const Word = require("./parse-tree").Word;
 const context = require("./context").createContext();
 const { postTransformationMutator } = require("./verifier");
 
-const Indices = {
-  Optionality: 0,
-  TypeTest: 1,
-  ValueTest: 2
-};
-
 function getRecursiveObjectValueStub() {
   return [Word.Fn, Word.Identity, null, { ns: context.NS.System }];
 }
@@ -177,16 +171,15 @@ function transformer(pt /* parse tree */) {
               getRecursiveObjectMountStub(id, node.properties.value)
             );
           } else {
+            let ns;
             switch (node.properties.type) {
-              case Word.Fn:
-                ns = context.NS.System;
-                fn = node.properties.value;
-                expectation = true;
-                break;
               case Word.UFn:
                 ns = context.NS.User;
-                fn = node.properties.value;
-                expectation = true;
+                break;
+
+              default:
+                ns = context.NS.System;
+                break;
             }
             pairConfig.valueResolver = [
               node.properties.type,

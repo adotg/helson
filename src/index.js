@@ -14,7 +14,7 @@ function makeEligibleContext(proposedCtx) {
 
   for (key in proposedCtx) {
     if (
-      !proposedCtx.hasOwnProperty(key) ||
+      !{}.hasOwnProperty.call(proposedCtx, key) ||
       typeof proposedCtx[key] !== "function"
     ) {
       continue;

@@ -288,7 +288,7 @@ function postTransformationMutator(ast, context) {
 
     [Word.TypeDef, Word.OList].forEach(defs => {
       for (item in ast[defs]) {
-        if (!ast[defs].hasOwnProperty(item)) {
+        if (!{}.hasOwnProperty.call(ast[defs], item)) {
           continue;
         }
         let key;
@@ -383,6 +383,7 @@ function verifier(ast, matchObj, config, context) {
 
     const itr = itrBase.inst();
     let done;
+    let overflow;
     let item;
     let fnSig;
     let localStatusCollection = [];
