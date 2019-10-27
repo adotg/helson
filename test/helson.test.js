@@ -753,5 +753,23 @@ describe("Helson", () => {
         ]
       ]);
     });
+
+    it("should throw error when the context function is not passed", () => {
+      const schema = `
+        typedef Weapons{
+          []str "active": checkListLen
+        }
+      `;
+
+      const result = () =>
+        helson(schema).match(
+          {
+            active: ["Ropecaster", "Tripcaster", "Icerail", "Bow"]
+          },
+          "Weapons"
+        );
+
+      expect(result).to.throw();
+    });
   });
 });

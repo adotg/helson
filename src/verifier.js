@@ -467,6 +467,16 @@ function verifier(ast, matchObj, config, context) {
           break;
       }
 
+      if (!(fn && typeof fn === "function")) {
+        throw new Error(`
+          Function \`${
+            fnSig[0]
+          }\` passed in schema but not defined in the context.
+          Use \`helson(schema).context({ /* def here */ })\` to define a permanent user context or
+          use \`helson(schema).match(..., ..., { /* def here */ })\` to define a local context
+        `);
+      }
+
       valueStatusGetter = fn(
         item,
         [...fnSig.slice(1), ...(item.astVal.valueResolver[2] || [])],
