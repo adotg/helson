@@ -2,12 +2,14 @@
   "name": "helson",
   "version": "0.0.0",
   "description": "JavaScript Object Schema Checker",
-  "main": "dist/helson.js",
+  "main": "dist/main.js",
   "scripts": {
-    "test": "npm run generate && mv helson.js src/helson.js && mocha",
-    "test:debug": "npm run generate && mv helson.js src/helson.js && mocha --inspect-brk=0.0.0.0:9229",
+    "test": "npm run generate && mocha && npm run clean:generated",
+    "test:debug": "npm run generate && mocha --inspect-brk=0.0.0.0:9229",
     "start:debug": "node --inspect-brk=0.0.0.0:9229 src/index",
-    "generate": "jison src/helson.y src/helson.lex",
+    "build": "npm run generate && webpack --config webpack.config.js && npm run clean:generated",
+    "generate": "jison src/helson.y src/helson.lex && mv helson.js src/helson.js",
+    "clean:generated": "rm src/helson.js",
     "lint": "eslint src/"
   },
   "keywords": [
@@ -24,9 +26,17 @@
   "license": "Apache-2.0",
   "dependencies": {},
   "devDependencies": {
+    "@babel/core": "^7.6.4",
+    "@babel/preset-env": "^7.6.3",
+    "babel-loader": "^8.0.6",
+    "babel-minify-webpack-plugin": "^0.3.1",
+    "babel-preset-env": "^1.7.0",
     "chai": "^4.2.0",
+    "clean-webpack-plugin": "^3.0.0",
     "eslint": "^6.6.0",
     "jison": "^0.4.18",
-    "mocha": "^6.2.0"
+    "mocha": "^6.2.0",
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.9"
   }
 }
