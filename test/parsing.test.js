@@ -1,6 +1,6 @@
 const expect = require("chai").expect;
-const parser = require("../src/helson").parser; // temporary location before the build
-const { Word } = require("../src/parse-tree"); // temporary location before the build
+const parser = require("../src/helson").parser;
+const { Word } = require("../src/parse-tree");
 
 describe("Parse Tree", () => {
   describe("Primitive Type", () => {

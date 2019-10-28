@@ -1,11 +1,7 @@
 const expect = require("chai").expect;
-const parser = require("../src/helson").parser; // temporary location before the build
-const { Word } = require("../src/parse-tree"); // temporary location before the build
+const parser = require("../src/helson").parser;
+const { Word } = require("../src/parse-tree");
 const transformer = require("../src/transformer");
-
-function l(obj) {
-  console.log(JSON.stringify(obj, null, 2));
-}
 
 describe("AST", () => {
   it("should transform simple level 1 object", () => {

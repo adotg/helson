@@ -57,8 +57,3 @@ function helson(schemaInStr) {
 }
 
 module.exports = helson;
-
-/*
- * Expected usage:
- * helson(text).context({}).for(name).match(obj, { context: {}})
- */
