@@ -645,7 +645,7 @@ describe("Helson", () => {
     ]);
   });
 
-  it("should thorw error if no mount point is given", () => {
+  it("should throw error if no mount point is given", () => {
     const schema = `
       typedef MultiDim {
         optnl [][]str "types": [["Arr", "Arr", "String"], ["String"], ["Arr", "Arr", "Foreign", "Type"], ["Bool"]],
