@@ -1,3 +1,5 @@
+/* global describe, it */
+
 const expect = require("chai").expect;
 const helson = require("../src/index");
 const Err = require("../src/err");
@@ -33,6 +35,21 @@ describe("Helson", () => {
       },
       "Person"
     );
+    expect(status).to.deep.equal([true, {}]);
+  });
+
+  it("should verfiy a object with negative number", () => {
+    const schema = `
+      typedef Person {
+        str "name": pass,
+        num "liability": [-1000, 0]
+      }  
+    `;
+
+    const status = helson(schema).match({
+      name: "Mr Wick",
+      liability: -100,
+    }, "Person")
     expect(status).to.deep.equal([true, {}]);
   });
 
@@ -359,7 +376,7 @@ describe("Helson", () => {
       ]
 
       typedef SuccessResponseFormat [
-        &HttpErrorCode "code": &"AllOK",
+        &HttpOkCode"code": &"AllOK",
         obj "data": {
           []&Data "items": pass
         }
@@ -520,7 +537,7 @@ describe("Helson", () => {
       },
       "MultiDim"
     );
-    result3 = helson(schema).match(
+    const result3 = helson(schema).match(
       {
         types: [["Arr", "String"], [], [["Type"]]],
         mat3D: [[[1, 2], [3, 2]], [[1, 1, 1], [5, 5, 5], [6, 6, 6]], [[]]]
@@ -528,7 +545,7 @@ describe("Helson", () => {
       "MultiDim"
     );
 
-    result4 = helson(schema).match(
+    const result4 = helson(schema).match(
       {
         types: []
       },

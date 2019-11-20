@@ -4,7 +4,7 @@ userfn              [a-zA-Z_]+[a-zA-Z0-9_]*
 struct_id           [A-Z][a-zA-Z0-9_]*
 text                \"[^"]*\"
 regex               \/.*\/
-numeric             [0-9]+(\.[0-9]+)?
+numeric             \-?[0-9]+(\.[0-9]+)?
 anything            \(.+\)
 
 %%
