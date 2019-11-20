@@ -3,11 +3,12 @@
   "version": "0.0.0",
   "description": "JavaScript Object Schema Checker",
   "main": "dist/main.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "test": "npm run generate && mocha && npm run clean:generated",
     "test:debug": "npm run generate && mocha --inspect-brk=0.0.0.0:9229",
     "start:debug": "node --inspect-brk=0.0.0.0:9229 src/index",
-    "build": "npm run generate && webpack --config webpack.config.js && npm run clean:generated",
+    "build": "npm run generate && webpack --config webpack.config.js && npm run clean:generated && cp src/index.d.ts dist/index.d.ts",
     "generate": "jison src/helson.y src/helson.lex && mv helson.js src/helson.js",
     "clean:generated": "rm src/helson.js",
     "lint": "eslint src/"
