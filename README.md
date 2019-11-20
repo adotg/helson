@@ -20,7 +20,13 @@
 
 [ ] Throw proper error during tokenizing / parsing / transformation phrase
 
-[ ] Support for nullable
+[i] Support for nullable and empty
+
+[i] Utility function to inject enum dynamically from an object
+
+[x] - (minus) sign not supported in the schema 😮
+
+[i] - Empty object ({}) checking, does not work
 
 ## Note
 
