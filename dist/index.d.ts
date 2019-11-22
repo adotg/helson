@@ -14,7 +14,7 @@ export as namespace helsonWrapper;
 export = helson;
 
 /*~ This example shows how to have multiple overloads for your function */
-declare function helson(schema: string): helson.NamedReturnType;
+declare function helson(schema: string): helson.Schema;
 
 declare namespace helson {
     export interface Serializable {
@@ -55,7 +55,7 @@ declare namespace helson {
         [key: string]: string | ValidationReport | ValidationReport[]
     }
 
-    export interface NamedReturnType {
+    export interface Schema {
         match: (objToBeMatched: Serializable, targetTypeDefinition: string, localContext?: ContextDefinition) => ([boolean, ValidationReport]);
         context: (globalContxt: ContextFunction) => helson;
     }
