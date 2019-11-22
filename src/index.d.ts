@@ -35,16 +35,16 @@ declare namespace helson {
 
     export interface IteratorBase {
         report: (key: string, msg: string) => void;
-        on: (phrase: Phrase, callback: (currentlyMountedAST: Serializable, key: string) => void);
+        on: (phrase: Phrase, callback: (currentlyMountedAST: Serializable, key: string) => void) => void;
     }
 
     export interface ParsingContext {
-        objToBeMatched: Serializable,
-        ast: Serializable
+        objToBeMatched: Serializable;
+        ast: Serializable;
     }
 
     export interface ContextFunction {
-        (currentItrParams: CurrentIterationContext, arguments: any, itr: IteratorBase): () => boolean
+        (currentItrParams: CurrentIterationContext, arguments: any[], input: ParsingContext, itr: IteratorBase): () => boolean
     }
 
     export interface ContextDefinition {
