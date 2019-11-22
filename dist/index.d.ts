@@ -43,8 +43,12 @@ declare namespace helson {
         ast: Serializable;
     }
 
+    export interface ContextFunctionResultCollector {
+        (): boolean;
+    }
+
     export interface ContextFunction {
-        (currentItrParams: CurrentIterationContext, arguments: any[], input: ParsingContext, itr: IteratorBase): () => boolean
+        (currentItrParams: CurrentIterationContext, arguments: any[], input: ParsingContext, itr: IteratorBase): ContextFunctionResultCollector;
     }
 
     export interface ContextDefinition {
