@@ -35,6 +35,7 @@ collector = null
 buffer = null
 rcg = null /* rcg = recursiveCollectorGroup */
 stack = []
+queue = []
 valueDims = [];
 ptrToCurrentRCG = null
 pathRCG = null
@@ -43,6 +44,11 @@ rcgCount = 0
 bits = 0x00
 // RightToLeft
 arrF = 0x01 // Array found
+
+function parseInteger(n) {
+    var nn = parseInt(n, 10);
+    return isNaN(nn) ? null : nn;
+}
 
 function setArrFoundBit() {
     bits = bits | arrF;
@@ -312,20 +318,34 @@ attr
     : TEXT                                      { $$ = yytext.replace(/^"|"$/g, ''); collector && collector.push($$); }
     ;
 
+ctx_fn_param
+    : TEXT
+    | NUMERIC                                   { $$ = +$1 }
+    | NULL
+    ;
+
+ctx_user_fn
+    : CTX_USER_FN ctx_fn_param*                 { queue.push([$1, ...$2]) }
+    ;
+
+
+ctx_user_fns
+    : ctx_user_fn (OR ctx_user_fn)*             { $$ = queue.slice(0); queue.length = 0; }
+    ;
 
 str_value
     : IDENTITY                                  { $$ = ({ type: Fn,  value: $1 }) }
     | FAIL                                      { $$ = ({ type: Fn,  value: $1 }) }
     | attr                                      { $$ = ({ type: Fn,  value: AbEq, args: [$1] }) }
     | REGEX                                     { $$ = ({ type: Fn,  value: AbEq, args: [$1, Word.Transformer.Str.Pattern] }) }
-    | CTX_USER_FN                               { $$ = ({ type: UFn, value: $1 }) }
+    | ctx_user_fns                              { $$ = ({ type: UFn, value: $1 }) }
     ;
 
 str_arr_value
     : IDENTITY                                  { $$ = ({ type: Fn,  value: $1 }) }
     | FAIL                                      { $$ = ({ type: Fn,  value: $1 }) }
     | str_arr_body_valid                        { $$ = ({ type: Fn,  value: ArrAbEq, args: [$1] }) }
-    | CTX_USER_FN                               { $$ = ({ type: UFn,  value: $1 }) }
+    | ctx_user_fns                              { $$ = ({ type: UFn,  value: $1 }) }
     ;
 
 str_arr_body_valid
@@ -373,25 +393,25 @@ close_sqb_hook
 num_value
     : IDENTITY                                  { $$ = ({ type: Fn,  value: $1 }) }
     | FAIL                                      { $$ = ({ type: Fn,  value: $1 }) }
-    | intervals                                 { $$ = ({ type: Fn,  value: $1 }) }
+    | intervals                                 { $$ = ({ type: Fn,  value: $1[0], args: $1.slice(1) }) }
     | NUMERIC                                   { $$ = ({ type: Fn,  value: AbEq, args: [+$1] }) }
-    | CTX_USER_FN                               { $$ = ({ type: UFn, value: $1 }) }
+    | ctx_user_fns                              { $$ = ({ type: UFn, value: $1 }) }
     ;
 
 intervals
     : (OPEN_BRAC | OPEN_SQB) NUMERIC? COMMA NUMERIC? (CLOSE_SQB | CLOSE_BRAC)
-                                                { $$ = `${
+                                                { $$ = [`${
                                                     $1 === "(" ? "lo" : "lc"
                                                 }${
                                                     $5 === ")" ? "ro" : "rc"
-                                                }Range,${$2 || null},${$4 || null}` }
+                                                }Range`, parseInteger($2), parseInteger($4)] }
     ;
 
 num_arr_value
     : IDENTITY                                  { $$ = ({ type: Fn,  value: $1 }) }
     | FAIL                                      { $$ = ({ type: Fn,  value: $1 }) }
     | num_arr_body_valid                        { $$ = ({ type: Fn,  value: ArrAbEq, args: [$1] }) }
-    | CTX_USER_FN                               { $$ = ({ type: UFn,  value: $1 }) }
+    | ctx_user_fns                              { $$ = ({ type: UFn,  value: $1 }) }
     ;
 
 num_arr_body_valid
@@ -416,14 +436,14 @@ bool_value
     | TRUTHY                                    { $$ = ({ type: Fn,   value: $1 }) }
     | FALSE                                     { $$ = ({ type: Fn,   value: AbEq, args: [$1] }) }
     | FALSY                                     { $$ = ({ type: Fn,   value: $1 }) }
-    | CTX_USER_FN                               { $$ = ({ type: UFn,  value: $1 }) }
+    | ctx_user_fns                              { $$ = ({ type: UFn,  value: $1 }) }]
     ;
 
 bool_arr_value
     : IDENTITY                                  { $$ = ({ type: Fn,  value: $1 }) }
     | FAIL                                      { $$ = ({ type: Fn,  value: $1 }) }
     | bool_arr_body_valid                       { $$ = ({ type: Fn,  value: ArrAbEq, args: [$1] }) }
-    | CTX_USER_FN                               { $$ = ({ type: UFn,  value: $1 }) }
+    | ctx_user_fns                              { $$ = ({ type: UFn,  value: $1 }) }
     ;
 
 bool_arr_body_valid
@@ -445,27 +465,27 @@ bool_val_proxy
 ref_value
     : IDENTITY                                  { $$ = ({ type: Fn,  value: $1 }) }
     | FAIL                                      { $$ = ({ type: Fn,  value: $1 }) }
-    | CTX_USER_FN                               { $$ = ({ type: UFn, value: $1 }) }
+    | ctx_user_fns                              { $$ = ({ type: UFn, value: $1 }) }
     | REFERENCE attr                            { $$ = ({ type: Ref, value: $2 }) }
     ;
 
 ref_arr_value
     : IDENTITY                                  { $$ = ({ type: Fn,  value: $1 }) }
     | FAIL                                      { $$ = ({ type: Fn,  value: $1 }) }
-    | CTX_USER_FN                               { $$ = ({ type: UFn, value: $1 }) }
+    | ctx_user_fns                              { $$ = ({ type: UFn, value: $1 }) }
     ;
 
 obj_value
     : IDENTITY                                  { $$ = ({ type: Fn,  value: $1 }) }
     | FAIL                                      { $$ = ({ type: Fn,  value: $1 }) }
     | def_body                                  { $$ = ({ type: Rec, value: $1[1] }) }
-    | CTX_USER_FN                               { $$ = ({ type: UFn, value: $1 }) }
+    | ctx_user_fns                              { $$ = ({ type: UFn, value: $1 }) }
     ;
 
 any_value
     : IDENTITY                                  { $$ = ({ type: Fn,  value: $1 }) }
     | FAIL                                      { $$ = ({ type: Fn,  value: $1 }) }
-    | CTX_USER_FN                               { $$ = ({ type: UFn, value: $1 }) }
+    | ctx_user_fns                              { $$ = ({ type: UFn, value: $1 }) }
     ;
 
 %%

@@ -303,7 +303,8 @@ function postTransformationMutator(ast, context) {
                 // Pass the enum name as part of the args of context fn. Probably not the best way of injecting the
                 // name. By here we go. This is done because during verification the enum member's typeProcessor changes
                 // to more fundamental type
-                val[1] = `${Word.EnumLookup},${enumName}`;
+                val[1] = Word.EnumLookup;
+                val[2] = [enumName];
               }
             }
           }
@@ -387,7 +388,7 @@ function verifier(ast, matchObj, config, context) {
     let item;
     let fnSig;
     let localStatusCollection = [];
-    let fn;
+    let fns;
     while ((({ done, overflow, item } = itr.next()), !done)) {
       let nestedResp;
 
@@ -457,38 +458,43 @@ function verifier(ast, matchObj, config, context) {
 
       // TODO if type checking fails continue, don't proceed to value checking
 
+      // TODO the structure for system function and non system function is bit different. Make it consistent.
       // Value checking
-      fnSig = item.astVal.valueResolver[1].split(",");
       switch (item.astVal.valueResolver[0]) {
         case Word.Fn:
-          fn = sysContext[fnSig[0]];
+          fnSig = [[item.astVal.valueResolver[1]]];
+          fns = [sysContext[fnSig[0][0]]];
           break;
         case Word.UFn:
-          fn = localContext[fnSig[0]] || userContext[fnSig[0]];
+          fnSig = item.astVal.valueResolver[1];
+          // fns = localContext[fnSig[0]] || userContext[fnSig[0]];
+          fns = fnSig.map(sig => localContext[sig[0]] || userContext[sig[0]]);
           break;
       }
 
-      if (!(fn && typeof fn === "function")) {
-        throw new Error(`
-          Function \`${
-            fnSig[0]
-          }\` passed in schema but not defined in the context.
-          Use \`helson(schema).context({ /* def here */ })\` to define a permanent user context or
-          use \`helson(schema).match(..., ..., { /* def here */ })\` to define a local context
-        `);
-      }
+      fns.forEach(fn => {
+        if (!(fn && typeof fn === "function")) {
+          throw new Error(`
+            Function \`${
+              fnSig[0]
+            }\` passed in schema but not defined in the context.
+            Use \`helson(schema).context({ /* def here */ })\` to define a permanent user context or
+            use \`helson(schema).match(..., ..., { /* def here */ })\` to define a local context
+          `);
+        }
+      })
 
-      valueStatusGetter = fn(
+      valueStatusGetter = fns.map((fn, i) => fn(
         item,
-        [...fnSig.slice(1), ...(item.astVal.valueResolver[2] || [])],
+        [...fnSig[i].slice(1), ...(item.astVal.valueResolver[2] || [])],
         {
           matchObj,
           ast
         },
         itrBase
-      );
+      ));
 
-      localStatusCollection.push(typeStatusGetter() && valueStatusGetter());
+      localStatusCollection.push(typeStatusGetter() && valueStatusGetter.reduce((last, sg) => last && sg(), true));
     }
 
     return [

@@ -1,3 +1,5 @@
+/* global describe it */
+
 const expect = require("chai").expect;
 const parser = require("../src/helson").parser;
 const { Word } = require("../src/parse-tree");
@@ -75,7 +77,8 @@ describe("Parse Tree", () => {
                         nodeType: Word.PairComponentValue,
                         properties: {
                           type: Word.Fn,
-                          value: "lcrcRange,null,100"
+                          value: "lcrcRange",
+                          args: [null,  100]
                         },
                         children: []
                       }
@@ -257,7 +260,7 @@ describe("Parse Tree", () => {
       const schema = `
         typedef Alien {
           str "name": pass,
-          optnl str "id": idValidity
+          optnl str "id": idValidity,
           any "details": pass,
         }
       `;
@@ -324,7 +327,7 @@ describe("Parse Tree", () => {
                         nodeType: Word.PairComponentValue,
                         properties: {
                           type: Word.UFn,
-                          value: "idValidity"
+                          value: [["idValidity"]]
                         },
                         children: []
                       }
@@ -444,7 +447,9 @@ describe("Parse Tree", () => {
                           nodeType: Word.PairComponentValue,
                           properties: {
                             type: Word.Fn,
-                            value: "lcrcRange,0,100"
+                            value: "lcrcRange",
+                            args: [0, 100]
+                          
                           },
                           children: []
                         }
@@ -468,7 +473,8 @@ describe("Parse Tree", () => {
                           nodeType: Word.PairComponentValue,
                           properties: {
                             type: Word.Fn,
-                            value: "lcrcRange,1,50"
+                            value: "lcrcRange",
+                            args: [1, 50]
                           },
                           children: []
                         }
@@ -1787,7 +1793,8 @@ describe("Parse Tree", () => {
                           nodeType: Word.PairComponentValue,
                           properties: {
                             type: Word.Fn,
-                            value: "loroRange,1,5"
+                            value: "loroRange",
+                            args: [1, 5]
                           },
                           children: []
                         }

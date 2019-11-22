@@ -1,3 +1,4 @@
+/* global describe it */
 const expect = require("chai").expect;
 const parser = require("../src/helson").parser;
 const { Word } = require("../src/parse-tree");
@@ -96,8 +97,8 @@ describe("AST", () => {
             keyId: "age",
             valueResolver: [
               Word.Fn,
-              "lcrcRange,null,100",
-              null,
+              "lcrcRange", 
+              [null, 100],
               {
                 ns: 0
               }
@@ -139,8 +140,8 @@ describe("AST", () => {
             keyId: "quantity",
             valueResolver: [
               Word.Fn,
-              "lcrcRange,1,10",
-              null,
+              "lcrcRange", 
+              [1, 10],
               {
                 ns: 0
               }
@@ -270,8 +271,8 @@ describe("AST", () => {
             keyId: "age",
             valueResolver: [
               Word.Fn,
-              "lcrcRange,18,150",
-              null,
+              "lcrcRange", 
+              [18, 150],
               {
                 ns: 0
               }
@@ -283,7 +284,7 @@ describe("AST", () => {
             keyId: "ssn",
             valueResolver: [
               Word.UFn,
-              "ssnValidator",
+              [["ssnValidator"]],
               null,
               {
                 ns: 1
@@ -495,7 +496,7 @@ describe("AST", () => {
             keyId: "items",
             valueResolver: [
               Word.UFn,
-              "arrLenGreaterThanOne",
+              [["arrLenGreaterThanOne"]],
               null,
               {
                 ns: 1

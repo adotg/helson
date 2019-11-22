@@ -19,6 +19,45 @@ const checkListLen = ({ value, key, currentDim }, _, __, itr) => {
   }
 };
 
+const strShouldNotBeEmpty = ({ value, key }, _, __, itr) => {
+  let result = true;
+  if (value.trim() === '') {
+    result = false;
+  }
+
+  if (!result) {
+    itr.report(key, "Key should not be empty string");
+  }
+
+  return () => result;
+}
+
+const shouldBeOfMinimumLength = ({ value, key }, args, __, itr) => {
+  let result = true;
+  if (value.replace(/\s+/, ' ').trim().length < args[0]) {
+    result = false;
+  }
+
+  if (!result) {
+    itr.report(key, `Character length should not be less than ${args[0]}`);
+  }
+
+  return () => result;
+}
+
+const shouldHaveMinimumWordLength = ({ value, key }, args, __, itr) => {
+  let result = true;
+  if (value.replace(/\s+/, ' ').trim().split(/\s+/).length < args[0]) {
+    result = false;
+  }
+
+  if (!result) {
+    itr.report(key, `Word length should not be less than ${args[0]}`);
+  }
+
+  return () => result;
+}
+
 describe("Helson", () => {
   it("should verifier a simple object", () => {
     const schema = `
@@ -788,5 +827,52 @@ describe("Helson", () => {
 
       expect(result).to.throw();
     });
+
+    it("should accept and run pipes of context functions from user", () => {
+      const schema = `
+        typedef AddPostPayload {
+          str "linkHash": pass,
+          str "url": pass,
+          []str "tags": pass,
+          str "pinnedTag": pass,
+          str "contribHandle": pass,
+          bool "isCollection": pass,
+          obj "content": {
+            str "body": strShouldNotBeEmpty | shouldBeOfMinimumLength 15 | shouldHaveMinimumWordLength 5,
+            str "head": strShouldNotBeEmpty | shouldBeOfMinimumLength 5,
+          },
+        }
+      `;
+
+      const verifier = helson(schema).context({
+        strShouldNotBeEmpty,
+        shouldBeOfMinimumLength,
+        shouldHaveMinimumWordLength
+      });
+
+      const result = verifier.match({
+        linkHash: 'hash-of-a-link',
+        url: '#/e/hash-of-a-link',
+        tags: ['a1', 'a2', 'a3'],
+        pinnedTag: 'a1',
+        contribHandle: 'akash',
+        isCollection: true,
+        content: {
+          body: 'This is a body',
+          head: 'This is '
+        }
+      }, 'AddPostPayload');
+
+      expect(result).to.deep.equal([false, {
+        content: [
+          {
+            body: [
+              "Character length should not be less than 15",
+              "Word length should not be less than 5"
+            ]
+          }
+        ]
+      }])
+    })
   });
 });
