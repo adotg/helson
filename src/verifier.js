@@ -467,16 +467,15 @@ function verifier(ast, matchObj, config, context) {
           break;
         case Word.UFn:
           fnSig = item.astVal.valueResolver[1];
-          // fns = localContext[fnSig[0]] || userContext[fnSig[0]];
           fns = fnSig.map(sig => localContext[sig[0]] || userContext[sig[0]]);
           break;
       }
 
-      fns.forEach(fn => {
+      fns.forEach((fn, i) => {
         if (!(fn && typeof fn === "function")) {
           throw new Error(`
             Function \`${
-              fnSig[0]
+              fnSig[i]
             }\` passed in schema but not defined in the context.
             Use \`helson(schema).context({ /* def here */ })\` to define a permanent user context or
             use \`helson(schema).match(..., ..., { /* def here */ })\` to define a local context
