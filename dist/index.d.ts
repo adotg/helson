@@ -61,6 +61,6 @@ declare namespace helson {
 
     export interface Schema {
         match: (objToBeMatched: Serializable, targetTypeDefinition: string, localContext?: ContextDefinition) => ([boolean, ValidationReport]);
-        context: (globalContxt: ContextDefinition) => helson;
+        context: (globalContxt: ContextDefinition) => Schema;
     }
 }
