@@ -733,6 +733,24 @@ describe("Helson", () => {
     expect(result).to.deep.equal([true, {}]);
   });
 
+  it("should verify boolean keys as well", () => {
+    const schema = `
+      typedef HZD {
+        bool "bestRPGEver": true,
+      } 
+    `;
+
+    debugger;
+    const result = helson(schema).match(
+      {
+        bestRPGEver: true,
+      },
+      "HZD"
+    );
+
+    expect(result).to.deep.equal([true, {}]);
+  });
+
   describe("CustomContextFunction", () => {
     it("should accept and run custom context functions from user", () => {
       const schema = `

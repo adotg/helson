@@ -432,9 +432,9 @@ num_val_proxy
 bool_value
     : IDENTITY                                  { $$ = ({ type: Fn,   value: $1 }) }
     | FAIL                                      { $$ = ({ type: Fn,   value: $1 }) }
-    | TRUE                                      { $$ = ({ type: Fn,   value: AbEq, args: [$1] }) }
+    | TRUE                                      { $$ = ({ type: Fn,   value: AbEq, args: [true] }) }
     | TRUTHY                                    { $$ = ({ type: Fn,   value: $1 }) }
-    | FALSE                                     { $$ = ({ type: Fn,   value: AbEq, args: [$1] }) }
+    | FALSE                                     { $$ = ({ type: Fn,   value: AbEq, args: [false] }) }
     | FALSY                                     { $$ = ({ type: Fn,   value: $1 }) }
     | ctx_user_fns                              { $$ = ({ type: UFn,  value: $1 }) }]
     ;
@@ -458,8 +458,8 @@ bool_arr_body
     ;
 
 bool_val_proxy
-    : TRUE                                      { collector && collector.push($$); }
-    | FALSE                                     { collector && collector.push($$); }
+    : TRUE                                      { collector && collector.push(true); }
+    | FALSE                                     { collector && collector.push(false); }
     ;
 
 ref_value

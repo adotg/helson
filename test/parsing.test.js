@@ -241,7 +241,7 @@ describe("Parse Tree", () => {
                         properties: {
                           type: Word.Fn,
                           value: Word.AbEq,
-                          args: ["false"]
+                          args: [false]
                         },
                         children: []
                       }
@@ -609,7 +609,7 @@ describe("Parse Tree", () => {
                             type: Word.Fn,
                             value: Word.ArrAbEq,
                             args: [
-                              [["true", "false"], ["false", "true"], ["true"]]
+                              [[true, false], [false, true], [true]]
                             ]
                           },
                           children: []
@@ -905,7 +905,7 @@ describe("Parse Tree", () => {
                                       properties: {
                                         type: Word.Fn,
                                         value: Word.AbEq,
-                                        args: ["true"]
+                                        args: [true]
                                       },
                                       children: []
                                     }
@@ -1247,7 +1247,7 @@ describe("Parse Tree", () => {
                                       properties: {
                                         type: Word.Fn,
                                         value: Word.AbEq,
-                                        args: ["true"]
+                                        args: [true]
                                       },
                                       children: []
                                     }
