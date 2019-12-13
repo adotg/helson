@@ -739,8 +739,7 @@ describe("Helson", () => {
         bool "bestRPGEver": true,
       } 
     `;
-
-    debugger;
+    
     const result = helson(schema).match(
       {
         bestRPGEver: true,
